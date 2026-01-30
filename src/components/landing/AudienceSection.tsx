@@ -6,23 +6,23 @@ import { Building2, Beaker, Wallet2, ShieldAlert } from "lucide-react";
 const audiences = [
   {
     icon: Building2,
-    title: "Enterprises Deploying AI Agents",
-    description: "Organizations rolling out autonomous agents that need to transact with external systems and vendors.",
+    title: "Enterprises deploying AI agents",
+    description: "Organizations rolling out autonomous agents that need to transact with external systems.",
   },
   {
     icon: Beaker,
-    title: "AI-First Companies",
-    description: "Companies experimenting with agent-driven procurement, automation, and autonomous workflows.",
+    title: "AI-first companies",
+    description: "Companies experimenting with agent-driven procurement and automation.",
   },
   {
     icon: Wallet2,
-    title: "Finance Teams",
-    description: "CFOs, controllers, and finance leaders who need real-time controls over non-human spend.",
+    title: "Finance teams",
+    description: "CFOs and controllers who need real-time controls over non-human spend.",
   },
   {
     icon: ShieldAlert,
-    title: "Security & Compliance",
-    description: "Teams requiring complete traceability, auditability, and governance for agent actions.",
+    title: "Security & compliance",
+    description: "Teams requiring complete traceability and governance for agent actions.",
   },
 ];
 
@@ -32,43 +32,36 @@ export function AudienceSection() {
 
   return (
     <section id="audience" className="relative py-24 md:py-32">
-      <div className="container relative z-10" ref={ref}>
+      <div className="container" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto"
+          transition={{ duration: 0.5 }}
+          className="mx-auto max-w-3xl text-center"
         >
-          <span className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-body-sm font-medium text-primary border border-primary/20">
+          <p className="text-sm font-medium uppercase tracking-wider text-primary">
             Who It's For
-          </span>
-          <h2 className="mt-6 text-heading-1 text-foreground">
-            Built for Forward-Looking Enterprises
+          </p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Built for forward-looking enterprises
           </h2>
         </motion.div>
 
-        <div className="mt-16 grid gap-6 md:grid-cols-2">
+        <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-2">
           {audiences.map((audience, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
-              className="group relative rounded-2xl border border-border bg-card p-8 shadow-card transition-all duration-300 hover:shadow-lg hover:border-primary/20"
+              transition={{ duration: 0.4, delay: 0.1 + index * 0.1 }}
+              className="flex items-start gap-4 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/30"
             >
-              <div className="flex items-start gap-5">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                  <audience.icon className="h-7 w-7" />
-                </div>
-                
-                <div>
-                  <h3 className="text-heading-3 text-foreground">
-                    {audience.title}
-                  </h3>
-                  <p className="mt-2 text-body text-muted-foreground">
-                    {audience.description}
-                  </p>
-                </div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                <audience.icon className="h-5 w-5 text-slate-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">{audience.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{audience.description}</p>
               </div>
             </motion.div>
           ))}
