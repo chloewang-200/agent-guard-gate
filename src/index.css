@@ -1,4 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&display=swap');
+
+@font-face {
+  font-family: 'Plaid Sans';
+  src: local('Plaid Sans'), url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -8,8 +17,8 @@
 
 @layer base {
   :root {
-    /* Core palette - Slate/Blue enterprise theme */
-    --background: 210 20% 99%;
+    /* Core palette - Plaid-inspired clean fintech */
+    --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -18,20 +27,20 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Deep blue primary - trust, enterprise */
-    --primary: 221 83% 53%;
+    /* Plaid-style dark navy primary */
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
     /* Slate secondary */
-    --secondary: 215 20% 95%;
+    --secondary: 215 25% 94%;
     --secondary-foreground: 222 47% 11%;
 
     /* Muted slate tones */
-    --muted: 215 20% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 214 32% 96%;
+    --muted-foreground: 215 18% 45%;
 
-    /* Accent - subtle blue tint */
-    --accent: 214 32% 91%;
+    /* Accent - soft indigo tint */
+    --accent: 221 60% 95%;
     --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
@@ -56,42 +65,42 @@
     --slate-900: 222 47% 11%;
     --slate-950: 229 84% 5%;
 
-    /* Trust blue spectrum */
-    --blue-50: 214 100% 97%;
-    --blue-100: 214 95% 93%;
-    --blue-200: 213 97% 87%;
-    --blue-300: 212 96% 78%;
-    --blue-400: 213 94% 68%;
-    --blue-500: 217 91% 60%;
-    --blue-600: 221 83% 53%;
-    --blue-700: 224 76% 48%;
-    --blue-800: 226 71% 40%;
-    --blue-900: 224 64% 33%;
+    /* Indigo spectrum */
+    --indigo-50: 221 70% 96%;
+    --indigo-100: 221 65% 92%;
+    --indigo-200: 221 60% 85%;
+    --indigo-300: 221 60% 72%;
+    --indigo-400: 221 70% 55%;
+    --indigo-500: 221 83% 53%;
+    --indigo-600: 221 90% 45%;
+    --indigo-700: 221 92% 38%;
+    --indigo-800: 221 88% 32%;
+    --indigo-900: 221 78% 26%;
 
-    /* Success/governance green */
-    --emerald-50: 152 81% 96%;
-    --emerald-500: 160 84% 39%;
-    --emerald-600: 161 94% 30%;
+    /* Success/governance - blue-green */
+    --success-50: 173 80% 96%;
+    --success-500: 173 80% 36%;
+    --success-600: 173 90% 28%;
 
     /* Warning amber */
     --amber-50: 48 100% 96%;
     --amber-500: 38 92% 50%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53% / 0.05) 0%, hsl(210 40% 98% / 0.8) 50%, hsl(221 83% 53% / 0.03) 100%);
+    /* Gradients - minimal Plaid style */
+    --gradient-hero: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(214 32% 99%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(214 32% 99%) 100%);
-    --gradient-text: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(221 83% 53%) 100%);
-    --gradient-cta: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(224 76% 48%) 100%);
-    --gradient-glow: radial-gradient(ellipse 80% 50% at 50% -20%, hsl(221 83% 53% / 0.15) 0%, transparent 70%);
-    --gradient-grid: linear-gradient(hsl(214 32% 91% / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(214 32% 91% / 0.5) 1px, transparent 1px);
+    --gradient-text: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(217 91% 60%) 100%);
+    --gradient-cta: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
+    --gradient-glow: radial-gradient(ellipse 80% 50% at 50% -20%, hsl(217 91% 60% / 0.08) 0%, transparent 70%);
+    --gradient-grid: linear-gradient(hsl(214 32% 91% / 0.3) 1px, transparent 1px), linear-gradient(90deg, hsl(214 32% 91% / 0.3) 1px, transparent 1px);
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.07), 0 2px 4px -2px hsl(0 0% 0% / 0.05);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.08), 0 8px 10px -6px hsl(0 0% 0% / 0.04);
-    --shadow-glow: 0 0 40px -10px hsl(221 83% 53% / 0.3);
-    --shadow-card: 0 0 0 1px hsl(214 32% 91%), 0 1px 3px hsl(0 0% 0% / 0.04), 0 6px 16px -4px hsl(0 0% 0% / 0.06);
+    --shadow-glow: 0 0 40px -10px hsl(221 83% 53% / 0.28);
+    --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.05), 0 1px 2px hsl(0 0% 0% / 0.1);
 
     /* Sidebar tokens */
     --sidebar-background: 0 0% 98%;
@@ -116,8 +125,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Plaid Sans', 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  * {
+    font-family: 'Plaid Sans', 'Inter', system-ui, -apple-system, sans-serif;
   }
 
   code, pre {
@@ -150,6 +163,23 @@
 
   .shadow-glow {
     box-shadow: var(--shadow-glow);
+  }
+
+  .bg-ambient {
+    background: hsl(0 0% 100%);
+  }
+
+  .bg-aurora {
+    background: hsl(0 0% 100%);
+  }
+
+  .glass-card {
+    @apply border border-slate-200 bg-white;
+    box-shadow: var(--shadow-card);
+  }
+
+  .text-balance {
+    text-wrap: balance;
   }
 
   .animate-fade-up {

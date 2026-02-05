@@ -1,99 +1,79 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { AnimatedDashboard } from "./AnimatedDashboard";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen overflow-hidden pt-16">
-      {/* Subtle gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-background to-background" />
-      
-      <div className="container relative z-10 flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-8"
-        >
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-1.5 text-sm font-medium text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Now in private beta
-          </span>
-        </motion.div>
+    <section id="top" className="relative overflow-hidden bg-white pt-32 pb-24 md:pt-40 md:pb-32">
+      <div className="container relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left: Text Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center lg:text-left"
+          >
+            <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1]">
+              Launch <span className="text-blue-600">trusted <span className="relative inline-block">
+                <span className="relative z-10">spending AI</span>
+                <svg 
+                  className="absolute bottom-0 left-0 w-full h-3 -rotate-1"
+                  viewBox="0 0 200 20"
+                  preserveAspectRatio="none"
+                  style={{ overflow: 'visible' }}
+                >
+                  <path
+                    d="M 0 15 Q 20 10, 40 12 T 80 10 T 120 12 T 160 10 T 200 12"
+                    stroke="#3b82f6"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.1))' }}
+                  />
+                </svg>
+              </span></span> agents with full control.
+            </h1>
+            <p className="mt-6 mx-auto lg:mx-0 max-w-xl text-lg text-slate-600 md:text-xl leading-relaxed">
+              Deploy AI agents that book travel, manage vendors, and execute purchases with real-time control of budgets, approvals, and audit-ready records.
+            </p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="max-w-4xl text-center text-4xl font-semibold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
-        >
-          The financial control plane for{" "}
-          <span className="text-primary">autonomous AI agents</span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-6 max-w-2xl text-center text-lg text-muted-foreground md:text-xl"
-        >
-          Safely enable AI agents to spend money—while preserving enterprise-grade control, compliance, and accountability.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-4"
-        >
-          <Button size="lg" className="gap-2">
-            Request Early Access
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="lg">
-            View Documentation
-          </Button>
-        </motion.div>
-
-        {/* Simple visual element */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          className="mt-20 w-full max-w-4xl"
-        >
-          <div className="relative rounded-xl border border-border bg-card p-8 shadow-lg">
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
-                  </svg>
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center lg:justify-start">
+              <div className="relative flex-1 max-w-md">
+                <div className="relative w-full">
+                  <Input
+                    type="email"
+                    placeholder="What's your work email?"
+                    className="w-full h-14 rounded-lg border border-slate-900 bg-white pl-6 pr-36 text-base text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                  />
+                  <Button
+                    asChild
+                    className="absolute right-1.5 top-1.5 h-11 rounded-lg border border-slate-900 px-6 text-sm font-semibold text-slate-900 z-50 shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                    style={{ backgroundColor: '#eefa79' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0fb8a'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#eefa79'}
+                  >
+                    <a href="#beta">Get Started For Free</a>
+                  </Button>
                 </div>
-                <p className="text-sm font-medium text-foreground">Agent Wallets</p>
-                <p className="mt-1 text-xs text-muted-foreground">Per-agent spend controls</p>
-              </div>
-              <div className="text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-foreground">Policy Engine</p>
-                <p className="mt-1 text-xs text-muted-foreground">Real-time enforcement</p>
-              </div>
-              <div className="text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-foreground">Full Audit Trail</p>
-                <p className="mt-1 text-xs text-muted-foreground">Complete visibility</p>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+
+          {/* Right: Animated Dashboard with Retro Tech Style */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="relative border border-slate-900 rounded-2xl p-6 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+              <AnimatedDashboard />
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
