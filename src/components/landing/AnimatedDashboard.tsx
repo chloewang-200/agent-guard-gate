@@ -47,6 +47,16 @@ export function AnimatedDashboard() {
   const [visibleTransactions, setVisibleTransactions] = useState<string[]>([]);
   const [visiblePolicies, setVisiblePolicies] = useState<string[]>([]);
   const [visibleAudits, setVisibleAudits] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const animate = () => {
@@ -111,9 +121,9 @@ export function AnimatedDashboard() {
           <ArrowRight className="h-5 w-5 text-blue-600 flex-shrink-0" />
           <h3 className="text-base font-bold text-slate-900">Transactions</h3>
         </div>
-        <div className="space-y-3 min-h-[280px]">
+        <div className={`space-y-3 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
           <AnimatePresence>
-            {transactions.map((txn) => (
+            {(isMobile ? transactions.slice(0, 1) : transactions).map((txn) => (
               <motion.div
                 key={txn.id}
                 initial={{ opacity: 0, x: -20 }}
@@ -157,9 +167,9 @@ export function AnimatedDashboard() {
           <Shield className="h-5 w-5 text-blue-600 flex-shrink-0" />
           <h3 className="text-base font-bold text-slate-900">Policies Applied</h3>
         </div>
-        <div className="space-y-3 min-h-[280px]">
+        <div className={`space-y-3 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
           <AnimatePresence>
-            {policyChecks.map((policy) => (
+            {(isMobile ? policyChecks.slice(0, 1) : policyChecks).map((policy) => (
               <motion.div
                 key={policy.id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -213,9 +223,9 @@ export function AnimatedDashboard() {
           <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
           <h3 className="text-base font-bold text-slate-900">Audit Records</h3>
         </div>
-        <div className="space-y-3 min-h-[280px]">
+        <div className={`space-y-3 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
           <AnimatePresence>
-            {auditRecords.map((audit) => (
+            {(isMobile ? auditRecords.slice(0, 1) : auditRecords).map((audit) => (
               <motion.div
                 key={audit.id}
                 initial={{ opacity: 0, y: 10 }}

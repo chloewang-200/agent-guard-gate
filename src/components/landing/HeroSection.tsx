@@ -27,7 +27,7 @@ export function HeroSection() {
                   <path
                     d="M 0 15 Q 20 10, 40 12 T 80 10 T 120 12 T 160 10 T 200 12"
                     stroke="#3b82f6"
-                    strokeWidth="4"
+                    strokeWidth="6"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -46,11 +46,11 @@ export function HeroSection() {
                   <Input
                     type="email"
                     placeholder="What's your work email?"
-                    className="w-full h-14 rounded-lg border border-slate-900 bg-white pl-6 pr-36 text-base text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                    className="w-full h-14 rounded-lg border border-slate-900 bg-white pl-6 pr-40 text-base text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
                   />
                   <Button
                     asChild
-                    className="absolute right-1.5 top-1.5 h-11 rounded-lg border border-slate-900 px-6 text-sm font-semibold text-slate-900 z-50 shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                    className="absolute right-2 top-2 h-10 rounded-lg border border-slate-900 px-5 text-sm font-semibold text-slate-900 z-50 shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
                     style={{ backgroundColor: '#eefa79' }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0fb8a'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#eefa79'}
@@ -69,7 +69,7 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative"
           >
-            <div className="relative border border-slate-900 rounded-2xl p-6 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+            <div className="relative border border-slate-900 rounded-2xl p-6 bg-[#eefa79] shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
               <AnimatedDashboard />
             </div>
           </motion.div>

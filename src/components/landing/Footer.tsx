@@ -1,13 +1,9 @@
-import { Shield } from "lucide-react";
-
 export function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white py-10">
       <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
         <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-950 text-white">
-            <Shield className="h-3.5 w-3.5" />
-          </span>
+          <img src="/logo.png" alt="Ledgr" className="h-7 w-7" />
           <div>
             <span className="text-sm font-semibold text-slate-950">Ledgr</span>
             <p className="text-xs text-slate-500">Trust and control for agentic spend.</p>

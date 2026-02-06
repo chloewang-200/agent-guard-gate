@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { AlertTriangle, Bot, CheckCircle2, Clock3, DollarSign, ShieldCheck, FileText, Building2, Shield } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -13,14 +13,14 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-const capabilities = [
-  "clear ownership",
-  "defined budgets",
-  "approval rules",
-  "tax-ready receipts",
-  "audit-ready logs",
-];
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const adminTasks = [
   "book flights and hotels",
@@ -89,9 +89,9 @@ const transactionsPreview = [
 ];
 
 const statusClasses: Record<string, string> = {
-  approved: "bg-slate-900 text-white",
-  pending: "bg-amber-100 text-amber-800",
-  review: "bg-slate-100 text-slate-700",
+  approved: "bg-[#eefa79] text-slate-900 border-slate-900",
+  pending: "bg-orange-300 text-slate-900 border-slate-900",
+  review: "bg-slate-100 text-slate-700 border-slate-900",
 };
 
 const severityClasses: Record<string, string> = {
@@ -100,30 +100,79 @@ const severityClasses: Record<string, string> = {
   info: "bg-slate-100 text-slate-700",
 };
 
+const workflowSteps = [
+  {
+    id: 1,
+    title: "Register agents",
+    shortDesc: "Set up unique identities, virtual cards, and access controls.",
+    details: [
+      "unique agent identity",
+      "virtual card or wallet",
+      "owner + business unit",
+      "access controls",
+    ],
+  },
+  {
+    id: 2,
+    title: "Define policies",
+    shortDesc: "Set budgets, approval thresholds, and vendor rules.",
+    details: [
+      "spend modes: auto, approval, simulated",
+      "monthly budgets",
+      "per-transaction caps",
+      "vendor + category rules",
+    ],
+  },
+  {
+    id: 3,
+    title: "Monitor & enforce",
+    shortDesc: "Real-time tracking, approvals, and audit-ready records.",
+    details: [
+      "live spend tracking",
+      "risk signals",
+      "policy checks",
+      "audit-ready metadata",
+      "auto-approved within policy",
+      "route to humans when needed",
+      "receipts and tax tags",
+      "immutable audit trails",
+    ],
+  },
+];
+
+const agents = [
+  ["TravelAgent", "Flights & Hotels", "Operations", "Marcus Johnson", "Deployed", "Auto", "$4,250 / $15,000", "Low"],
+  ["OfficeSupplyRunner", "Office Supplies", "Operations", "Marcus Johnson", "Deployed", "Auto", "$320 / $1,500", "Low"],
+  ["SaaSBuyer", "Tools & Subscriptions", "Marketing", "Sarah Chen", "Deployed", "Approval Only", "$1,850 / $3,000", "Medium"],
+  ["CloudProvisioner", "Infrastructure", "Engineering", "Alex Kim", "Deployed", "Auto", "$38,500 / $50,000", "Medium"],
+  ["VendorPayBot", "Rent & Services", "Finance", "Emily Rodriguez", "Paused", "Approval Only", "$12,800 / $25,000", "Low"],
+];
+
 export function ProblemSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-120px" });
+  const [activeStep, setActiveStep] = useState<number | null>(1);
 
   const policiesPreview = [
     {
       name: "Travel Policy",
       description: "Corporate travel spend governance",
-      rules: [
-        { type: "💰", label: "Budget Cap", value: "$15,000/month" },
-        { type: "✅", label: "Vendor Allowlist", value: "Delta, United, Marriott" },
-        { type: "👤", label: "Approval Threshold", value: "$2,000/transaction" },
-      ],
+             rules: [
+               { type: "Budget Cap", label: "Budget Cap", value: "$15,000/month" },
+               { type: "Vendor Allowlist", label: "Vendor Allowlist", value: "Delta, United, Marriott" },
+               { type: "Approval Threshold", label: "Approval Threshold", value: "$2,000/transaction" },
+             ],
       appliesTo: "TravelAgent",
       enabled: true,
     },
     {
       name: "Cloud Infrastructure Policy",
       description: "Engineering cloud spend controls",
-      rules: [
-        { type: "💰", label: "Budget Cap", value: "$50,000/month" },
-        { type: "✅", label: "Vendor Allowlist", value: "AWS, GCP, Azure" },
-        { type: "💳", label: "Per-Transaction Cap", value: "$5,000" },
-      ],
+             rules: [
+               { type: "Budget Cap", label: "Budget Cap", value: "$50,000/month" },
+               { type: "Vendor Allowlist", label: "Vendor Allowlist", value: "AWS, GCP, Azure" },
+               { type: "Per-Transaction Cap", label: "Per-Transaction Cap", value: "$5,000" },
+             ],
       appliesTo: "CloudProvisioner",
       enabled: true,
     },
@@ -167,159 +216,245 @@ export function ProblemSection() {
           transition={{ duration: 0.45 }}
           className="mx-auto max-w-7xl"
         >
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
-              Let agents buy, without losing finance trust.
-            </h2>
-            <p className="mt-6 mx-auto max-w-3xl text-xl text-slate-600">
-              Ledgr lets teams deploy spending agents without giving up control of cash, approvals, or compliance.
-              Agents do the buying, humans keep the guardrails. Every action is traced, categorized, and report-ready.
+          {/* How Ledgr Works - Simplified */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">How Ledgr Works</h2>
+            <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
+              A step-by-step system to launch, control, and scale spend-capable agents with finance confidence.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-16">
-            {capabilities.map((item) => (
-              <div key={item} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-5 py-4 text-base font-medium text-slate-900">
-                <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                <span className="capitalize">{item}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-card">
-            <div className="border-b border-slate-200 bg-slate-50/80 px-8 py-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Dashboard Preview</p>
-              <h3 className="mt-2 text-xl font-semibold text-slate-900">Live spend control and audit visibility</h3>
-              <p className="mt-1 text-sm text-slate-600">
-                See what agents are spending, where the money went, and which approvals need attention.
-              </p>
+          {/* Simplified Workflow Steps - Clickable */}
+          <div className="mb-12">
+            <div className="grid gap-4 md:grid-cols-3 mb-6">
+              {workflowSteps.map((step) => (
+                <button
+                  key={step.id}
+                  onClick={() => setActiveStep(activeStep === step.id ? null : step.id)}
+                  className={`rounded-lg border border-slate-900 bg-white p-6 shadow-[2px_2px_0_0_rgba(0,0,0,1)] text-left transition-all hover:shadow-[3px_3px_0_0_rgba(0,0,0,1)] cursor-pointer ${
+                    activeStep === step.id ? 'bg-[#eefa79]' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg font-semibold text-sm border border-slate-900 shadow-[1px_1px_0_0_rgba(0,0,0,1)] ${
+                      activeStep === step.id ? 'bg-transparent text-slate-900' : 'bg-transparent text-slate-900'
+                    }`}>
+                      {step.id}
+                    </span>
+                    <h3 className="text-base font-bold text-slate-900">{step.title}</h3>
+                  </div>
+                </button>
+              ))}
             </div>
 
-            <div className="grid gap-6 px-8 py-8">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                {dashboardMetrics.map((metric) => (
-                  <Card key={metric.label} className="shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardDescription className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                        {metric.label}
-                      </CardDescription>
-                      <CardTitle className="mt-2 flex items-center gap-2 text-2xl text-slate-900">
-                        <metric.icon className="h-4 w-4 text-slate-400" />
-                        {metric.value}
-                      </CardTitle>
-                    </CardHeader>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">Spend Over Time</CardTitle>
-                    <CardDescription>Daily spend across all agents</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-52">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={spendTrend}>
-                        <defs>
-                          <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="10%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="day" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                        <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `$${v / 1000}k`} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                          }}
-                          formatter={(value: number) => [`$${value.toLocaleString()}`, "Spend"]}
-                        />
-                        <Area type="monotone" dataKey="amount" stroke="hsl(var(--primary))" fill="url(#spendGradient)" strokeWidth={2} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">Spend by Agent</CardTitle>
-                    <CardDescription>Monthly spend per agent</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-52">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={spendByAgent} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis type="number" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `$${v / 1000}k`} />
-                        <YAxis dataKey="agent" type="category" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" width={120} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                          }}
-                          formatter={(value: number) => [`$${value.toLocaleString()}`, "Spend"]}
-                        />
-                        <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">Active Alerts</CardTitle>
-                    <CardDescription>Security and compliance notifications</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {alertsPreview.map((alert) => (
-                      <div key={alert.title} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium text-slate-900">{alert.title}</p>
-                          <span className={`rounded-full px-2 py-1 text-xs font-medium ${severityClasses[alert.severity]}`}>
-                            {alert.severity}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs text-slate-600">{alert.note}</p>
+            {/* Detailed Step Content - Show Prototype Content */}
+            {activeStep === 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4"
+              >
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-slate-950">Create Agent Wallet</h3>
+                  <p className="mt-0.5 text-sm text-slate-600">Register a new agent and create a virtual wallet for spend control.</p>
+                </div>
+                <div className="rounded-xl border border-slate-900 bg-white p-4 shadow-[2px_2px_0_0_rgba(0,0,0,1)] space-y-3">
+                  <div className="grid gap-2.5 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-slate-900">Agent Name</label>
+                      <div className="rounded-lg border border-slate-900 bg-white px-3 py-2 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                        <span className="text-sm text-slate-600">TravelAgent</span>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">Recent Transactions</CardTitle>
-                    <CardDescription>Latest agent spending activity</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {transactionsPreview.map((txn) => (
-                      <div key={`${txn.vendor}-${txn.agent}`} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 p-3">
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{txn.vendor}</p>
-                          <p className="text-xs text-slate-500">{txn.agent}</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-slate-900">Owner</label>
+                      <div className="rounded-lg border border-slate-900 bg-white px-3 py-2 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                        <span className="text-sm text-slate-600">Marcus Johnson</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-slate-900">Business Unit</label>
+                      <div className="rounded-lg border border-slate-900 bg-white px-3 py-2 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                        <span className="text-sm text-slate-600">Operations</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-slate-900">Function</label>
+                      <div className="rounded-lg border border-slate-900 bg-white px-3 py-2 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                        <span className="text-sm text-slate-600">Flights & Hotels</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-slate-200 pt-2.5">
+                    <h4 className="text-sm font-semibold text-slate-900 mb-2">Virtual Wallet Details</h4>
+                    <div className="grid gap-2.5 md:grid-cols-2">
+                      <div className="rounded-lg border border-slate-900 bg-white p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Shield className="w-4 h-4 text-blue-600" />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Wallet ID</span>
                         </div>
+                        <p className="text-sm font-mono text-slate-900">wallet_7x9k2m4p</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-900 bg-white p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</span>
+                        </div>
+                        <span className="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-[#eefa79] text-slate-900 border border-slate-900">
+                          Active
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-slate-900 bg-[#eefa79] p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <CheckCircle2 className="w-4 h-4 text-slate-900" />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-slate-900">Access Controls</span>
+                    </div>
+                    <ul className="space-y-0.5 text-sm text-slate-900">
+                      <li className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-900 flex-shrink-0" />
+                        Virtual card provisioning enabled
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-900 flex-shrink-0" />
+                        Real-time spend tracking active
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-900 flex-shrink-0" />
+                        Policy enforcement enabled
+              </li>
+                    </ul>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeStep === 2 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4"
+              >
+                <div className="mb-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Spending Rules</p>
+                  <h3 className="mt-1 text-lg font-semibold text-slate-900">Policy-based governance</h3>
+                  <p className="mt-0.5 text-sm text-slate-600">
+                    Define budgets, vendor allowlists, approval thresholds, and tax-safe rules in readable policies.
+                  </p>
+                </div>
+                <div className="grid gap-3">
+                  {policiesPreview.map((policy) => (
+                    <div key={policy.name} className="rounded-xl border border-slate-900 bg-white p-3 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-2.5">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${policy.enabled ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-400"}`}>
+                            <Shield className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-base font-semibold text-slate-900">{policy.name}</h4>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${policy.enabled ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"}`}>
+                                {policy.enabled ? "Active" : "Disabled"}
+                              </span>
+                            </div>
+                            <p className="mt-0.5 text-sm text-slate-600">{policy.description}</p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {policy.rules.map((rule, i) => (
+                                <div key={i} className="flex items-center gap-1.5 rounded-lg border border-slate-900 bg-white px-2.5 py-1 text-xs shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                                  <span className="font-medium text-slate-700">{rule.label}:</span>
+                                  <span className="text-slate-600">{rule.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="mt-1.5 text-xs text-slate-500">Applies to: <strong className="text-slate-700">{policy.appliesTo}</strong></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {activeStep === 3 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4"
+              >
+                <div className="mb-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Audit Trails</p>
+                  <h3 className="mt-1 text-base font-semibold text-slate-900">Complete transaction context</h3>
+                  <p className="mt-0.5 text-xs text-slate-600">
+                    Every transaction includes agent identity, policy decisions, justifications, and tax-ready metadata.
+                  </p>
+                </div>
+                <div>
+                  {auditTrailPreview.slice(0, 1).map((audit) => (
+                    <div key={audit.id} className="rounded-xl border border-slate-900 bg-white p-3 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                      <div className="flex items-start justify-between mb-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-slate-900">{txn.amount}</span>
-                          <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusClasses[txn.status]}`}>
-                            {txn.status}
-                          </span>
+                          <FileText className="w-3.5 h-3.5 text-blue-600" />
+                          <div>
+                            <p className="text-xs font-medium text-slate-900">Audit Packet: {audit.id}</p>
+                            <p className="text-[10px] text-slate-500">{audit.timestamp}</p>
+                          </div>
+                        </div>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${audit.status === "approved" ? "bg-[#eefa79] text-slate-900 border border-slate-900" : "bg-orange-300 text-slate-900 border border-slate-900"}`}>
+                          {audit.status}
+                        </span>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-2.5 mb-2.5">
+                        <div className="rounded-lg border border-slate-900 bg-white p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <Bot className="w-3.5 h-3.5 text-blue-600" />
+                            <span className="text-xs font-medium text-slate-900">Agent Identity</span>
+                          </div>
+                          <div className="text-xs space-y-0.5 text-slate-600">
+                            <p><span className="text-slate-500">Name:</span> {audit.agent}</p>
+                            <p><span className="text-slate-500">Owner:</span> {audit.owner}</p>
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-slate-900 bg-white p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                            <span className="text-xs font-medium text-slate-900">Transaction</span>
+                          </div>
+                          <div className="text-xs space-y-0.5 text-slate-600">
+                            <p><span className="text-slate-500">Vendor:</span> {audit.vendor}</p>
+                            <p><span className="text-slate-500">Amount:</span> {audit.amount}</p>
+                            <p><span className="text-slate-500">Category:</span> {audit.category}</p>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                      <div className="rounded-lg border border-slate-900 bg-white p-2.5 mb-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                        <p className="text-xs font-medium text-slate-900 mb-1">Model Justification</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">{audit.justification}</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-900 bg-white p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Shield className="w-3.5 h-3.5 text-blue-600" />
+                          <span className="text-xs font-medium text-slate-900">Policy Decision</span>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">{audit.policyDecision}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
           </div>
 
-          {/* Spending Rules Section */}
-          <div className="mt-12 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-card">
-            <div className="border-b border-slate-200 bg-slate-50/80 px-8 py-5">
+          {/* Spending Rules Section - Hidden when any step is active */}
+          {activeStep === null && (
+          <div className="overflow-hidden rounded-3xl border border-slate-900 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+            <div className="border-b border-slate-900 bg-slate-50/80 px-8 py-5">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Spending Rules</p>
               <h3 className="mt-2 text-xl font-semibold text-slate-900">Policy-based governance</h3>
               <p className="mt-1 text-sm text-slate-600">
@@ -328,7 +463,7 @@ export function ProblemSection() {
             </div>
             <div className="grid gap-4 px-8 py-6">
               {policiesPreview.map((policy) => (
-                <div key={policy.name} className="rounded-xl border border-slate-200 bg-slate-50/60 p-5">
+                <div key={policy.name} className="rounded-xl border border-slate-900 bg-slate-50/60 p-5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${policy.enabled ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-400"}`}>
@@ -344,8 +479,7 @@ export function ProblemSection() {
                         <p className="mt-1 text-sm text-slate-600">{policy.description}</p>
                         <div className="mt-4 flex flex-wrap gap-2">
                           {policy.rules.map((rule, i) => (
-                            <div key={i} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs">
-                              <span>{rule.type}</span>
+                            <div key={i} className="flex items-center gap-2 rounded-lg border border-slate-900 bg-white px-3 py-1.5 text-xs shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
                               <span className="font-medium text-slate-700">{rule.label}:</span>
                               <span className="text-slate-600">{rule.value}</span>
                             </div>
@@ -359,73 +493,73 @@ export function ProblemSection() {
               ))}
             </div>
           </div>
+          )}
 
-          {/* Audit Trails Section */}
-          <div className="mt-12 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-card">
-            <div className="border-b border-slate-200 bg-slate-50/80 px-8 py-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Audit Trails</p>
-              <h3 className="mt-2 text-xl font-semibold text-slate-900">Complete transaction context</h3>
-              <p className="mt-1 text-sm text-slate-600">
+          {/* Audit Trails Section - Hidden when any step is active */}
+          {activeStep === null && (
+          <div className="mt-12 overflow-hidden rounded-3xl border border-slate-900 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+            <div className="border-b border-slate-900 bg-slate-50/80 px-4 py-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Audit Trails</p>
+              <h3 className="mt-1 text-base font-semibold text-slate-900">Complete transaction context</h3>
+              <p className="mt-0.5 text-xs text-slate-600">
                 Every transaction includes agent identity, policy decisions, justifications, and tax-ready metadata.
               </p>
             </div>
-            <div className="grid gap-4 px-8 py-6">
+            <div className="grid gap-3 px-4 py-3">
               {auditTrailPreview.map((audit) => (
-                <div key={audit.id} className="rounded-xl border border-slate-200 bg-slate-50/60 p-5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5 text-blue-600" />
+                <div key={audit.id} className="rounded-xl border border-slate-900 bg-slate-50/60 p-3 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                  <div className="flex items-start justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-3.5 h-3.5 text-blue-600" />
                       <div>
-                        <p className="font-medium text-slate-900">Audit Packet: {audit.id}</p>
-                        <p className="text-xs text-slate-500">{audit.timestamp}</p>
+                        <p className="text-xs font-medium text-slate-900">Audit Packet: {audit.id}</p>
+                        <p className="text-[10px] text-slate-500">{audit.timestamp}</p>
                       </div>
                     </div>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${audit.status === "approved" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${audit.status === "approved" ? "bg-[#eefa79] text-slate-900 border border-slate-900" : "bg-orange-300 text-slate-900 border border-slate-900"}`}>
                       {audit.status}
                     </span>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4 mb-4">
-                    <div className="rounded-lg border border-slate-200 bg-white p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Bot className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium text-slate-900">Agent Identity</span>
+                  <div className="grid md:grid-cols-2 gap-2.5 mb-2.5">
+                    <div className="rounded-lg border border-slate-900 bg-white p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <Bot className="w-3.5 h-3.5 text-blue-600" />
+                        <span className="text-xs font-medium text-slate-900">Agent Identity</span>
                       </div>
-                      <div className="text-sm space-y-1 text-slate-600">
+                      <div className="text-xs space-y-0.5 text-slate-600">
                         <p><span className="text-slate-500">Name:</span> {audit.agent}</p>
                         <p><span className="text-slate-500">Owner:</span> {audit.owner}</p>
                       </div>
                     </div>
-                    <div className="rounded-lg border border-slate-200 bg-white p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Building2 className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium text-slate-900">Transaction</span>
+                    <div className="rounded-lg border border-slate-900 bg-white p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                        <span className="text-xs font-medium text-slate-900">Transaction</span>
                       </div>
-                      <div className="text-sm space-y-1 text-slate-600">
+                      <div className="text-xs space-y-0.5 text-slate-600">
                         <p><span className="text-slate-500">Vendor:</span> {audit.vendor}</p>
                         <p><span className="text-slate-500">Amount:</span> {audit.amount}</p>
                         <p><span className="text-slate-500">Category:</span> {audit.category}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-4 mb-4">
-                    <p className="text-sm font-medium text-slate-900 mb-2">Model Justification</p>
-                    <p className="text-sm text-slate-600">{audit.justification}</p>
+                  <div className="rounded-lg border border-slate-900 bg-white p-2.5 mb-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                    <p className="text-xs font-medium text-slate-900 mb-1">Model Justification</p>
+                    <p className="text-xs text-slate-600 leading-relaxed">{audit.justification}</p>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Shield className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-medium text-slate-900">Policy Decision</span>
+                  <div className="rounded-lg border border-slate-900 bg-white p-2.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Shield className="w-3.5 h-3.5 text-blue-600" />
+                      <span className="text-xs font-medium text-slate-900">Policy Decision</span>
                     </div>
-                    <p className="text-sm text-slate-600">{audit.policyDecision}</p>
+                    <p className="text-xs text-slate-600 leading-relaxed">{audit.policyDecision}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+          )}
 
-          <p className="mt-8 text-base font-medium text-slate-900">
-            If you're scaling spend and want agents you can trust, Ledgr is for you.
-          </p>
         </motion.div>
 
         <motion.div
@@ -434,7 +568,7 @@ export function ProblemSection() {
           transition={{ duration: 0.45, delay: 0.1 }}
           className="mx-auto mt-16 grid max-w-7xl gap-6 lg:grid-cols-2"
         >
-          <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                 <article className="rounded-xl border border-slate-900 bg-white p-6 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
             <h3 className="text-xl font-semibold text-slate-950">Why this exists</h3>
             <p className="mt-3 text-slate-600">Even with agents, teams still need to:</p>
             <ul className="mt-4 space-y-2 text-slate-700">
@@ -447,14 +581,14 @@ export function ProblemSection() {
             </p>
           </article>
 
-          <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                 <article className="rounded-xl border border-slate-900 bg-white p-6 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
             <h3 className="text-xl font-semibold text-slate-950">Without Ledgr</h3>
             <ul className="mt-4 space-y-2 text-slate-700">
               {risksWithoutLedgr.map((risk) => (
                 <li key={risk}>• {risk}</li>
               ))}
             </ul>
-            <p className="mt-6 rounded-lg border border-slate-300 bg-slate-100 p-4 text-sm text-slate-700">
+                   <p className="mt-6 rounded-lg border border-slate-900 bg-slate-100 p-4 text-sm text-slate-700 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
               Traditional finance tools were not built for autonomous buyers.
             </p>
           </article>
