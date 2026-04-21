@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "#solution", label: "Solution" },
-  { href: "#use-cases", label: "Use Cases" },
   { href: "#how-it-works", label: "How It Works" },
+  { href: "#use-cases", label: "Use Cases" },
 ];
 
 export function Header() {
@@ -36,7 +36,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Brand Name */}
           <a href="#top" className="text-2xl font-bold tracking-tight text-slate-900">
-            Ledgr
+            Custos
           </a>
 
           {/* Navigation */}

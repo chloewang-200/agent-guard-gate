@@ -37,8 +37,8 @@ export function AudienceSection() {
           transition={{ duration: 0.45 }}
           className="mx-auto max-w-4xl"
         >
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">How Ledgr Works</h2>
-          <p className="mt-3 text-lg text-slate-600">
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">How Custos Works</h2>
+          <p className="mt-3 text-[15px] text-slate-600 leading-snug sm:text-lg sm:leading-relaxed">
             A step-by-step system to launch, control, and scale spend-capable agents with finance confidence.
           </p>
         </motion.div>

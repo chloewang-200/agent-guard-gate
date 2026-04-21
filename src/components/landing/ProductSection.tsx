@@ -28,7 +28,7 @@ export function ProductSection() {
   const isInView = useInView(ref, { once: true, margin: "-120px" });
 
   return (
-    <section id="solution" className="py-24 md:py-32 bg-white">
+    <section id="solution" className="pt-16 pb-24 md:pt-20 md:pb-32 bg-white">
       <div className="container" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -36,7 +36,7 @@ export function ProductSection() {
           transition={{ duration: 0.45 }}
           className="mx-auto max-w-5xl text-center"
         >
-          <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
             The <span className="relative inline-block">
               <span className="relative z-10">fintech control layer</span>
               <svg 
@@ -48,7 +48,7 @@ export function ProductSection() {
                 <path
                   d="M 0 15 Q 20 10, 40 12 T 80 10 T 120 12 T 160 10 T 200 12"
                   stroke="#3b82f6"
-                  strokeWidth="4"
+                  strokeWidth="3"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -57,8 +57,8 @@ export function ProductSection() {
               </svg>
             </span> for AI transactions
           </h2>
-          <p className="mt-6 mx-auto max-w-3xl text-xl text-slate-600">
-            Ledgr is the control plane for AI agents that initiate, request, or execute company spend.
+          <p className="mt-6 mx-auto max-w-3xl text-[15px] text-slate-600 leading-snug sm:text-lg sm:leading-relaxed">
+            Custos is the control plane for AI agents that initiate, request, or execute company spend.
             You define the rules. Agents operate within them.
           </p>
         </motion.div>
@@ -67,15 +67,20 @@ export function ProductSection() {
           initial={{ opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.45, delay: 0.08 }}
-          className="mt-16 grid gap-8 md:grid-cols-3"
+          className="mt-10 sm:mt-12 grid gap-5 sm:gap-6 md:grid-cols-3"
         >
           {features.map((feature) => (
-            <article key={feature.title} className={`rounded-lg border border-slate-900 ${feature.color} p-8 shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_0_rgba(0,0,0,1)] transition-shadow`}>
-              <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                <feature.icon className="h-6 w-6" />
-              </span>
-              <h3 className="mt-6 text-xl font-bold text-slate-900">{feature.title}</h3>
-              <p className="mt-3 text-base text-slate-600 leading-relaxed">{feature.description}</p>
+            <article
+              key={feature.title}
+              className={`rounded-lg border border-slate-900 ${feature.color} p-4 sm:p-7 shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_0_rgba(0,0,0,1)] transition-shadow`}
+            >
+              <div className="flex items-center gap-3 sm:block">
+                <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <feature.icon className="h-6 w-6" />
+                </span>
+                <h3 className="text-base sm:mt-5 sm:text-xl font-bold text-slate-900">{feature.title}</h3>
+              </div>
+              <p className="mt-2 text-sm sm:text-base text-slate-600 leading-relaxed">{feature.description}</p>
             </article>
           ))}
         </motion.div>

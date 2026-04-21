@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { CheckCircle2, ShieldCheck, User2, Plane, Package, Wrench, Cloud, Building2, Shield } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 const useCases = [
   {
@@ -62,6 +62,7 @@ const scenarios = [
 export function ContactSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-120px" });
+  const [activeScenario, setActiveScenario] = useState(0);
 
   return (
     <section id="use-cases" className="border-t border-slate-900 bg-white py-24 md:py-32 pb-8 md:pb-12">
@@ -72,29 +73,35 @@ export function ContactSection() {
           transition={{ duration: 0.45 }}
           className="relative mx-auto max-w-4xl text-center"
         >
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Six ways our platform simplifies spend for growing businesses.</h2>
-          <p className="mt-3 text-lg text-slate-600">
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Six ways our platform simplifies spend for growing businesses.</h2>
+          <p className="mt-3 text-[15px] text-slate-600 leading-snug sm:text-lg sm:leading-relaxed">
             Deploy agents that handle real spend while finance keeps approvals, visibility, and report-ready trails.
           </p>
         </motion.div>
 
-        <div className="relative mx-auto mt-10 grid max-w-6xl gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="relative mx-auto mt-10 grid max-w-6xl grid-cols-2 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {useCases.map((useCase, index) => (
             <motion.article
               key={useCase.title}
               initial={{ opacity: 0, y: 16 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.35, delay: 0.06 * index }}
-              className="rounded-xl border border-slate-900 bg-white p-6 shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_0_rgba(0,0,0,1)] transition-shadow"
+              className="rounded-xl border border-slate-900 bg-white p-4 sm:p-6 shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_0_rgba(0,0,0,1)] transition-shadow"
             >
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="text-left">
                 {useCase.icon && (() => {
                   const Icon = useCase.icon;
-                  return <Icon className="h-6 w-6 text-blue-600 flex-shrink-0" />;
+                  return <Icon className="hidden h-6 w-6 text-blue-600 flex-shrink-0 sm:block" />;
                 })()}
-                <h3 className="text-lg font-semibold text-slate-900">{useCase.title}</h3>
+                <h3 className="text-lg font-semibold text-slate-900 leading-tight">{useCase.title}</h3>
+                </div>
+                {useCase.icon && (() => {
+                  const Icon = useCase.icon;
+                  return <Icon className="h-6 w-6 text-blue-600 flex-shrink-0 sm:hidden" />;
+                })()}
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">{useCase.description}</p>
+              <p className="text-sm text-slate-600 leading-tight">{useCase.description}</p>
             </motion.article>
           ))}
         </div>
@@ -107,22 +114,41 @@ export function ContactSection() {
         >
           <h3 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Example Agent Scenarios</h3>
           <p className="mt-3 text-slate-600">
-            Natural-language requests from teams, with controlled execution and audit trails by Ledgr.
+            Natural-language requests from teams, with controlled execution and audit trails by Custos.
           </p>
 
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            {scenarios.map((scenario) => (
+          <div className="mt-6 flex flex-col gap-3 sm:hidden">
+            <div className="text-xs font-semibold text-slate-600 text-center">
+              {activeScenario + 1} / {scenarios.length}
+            </div>
+
+            {scenarios.map((scenario, index) => (
               <article
                 key={scenario.title}
-                className="flex flex-col overflow-hidden rounded-xl border border-slate-900 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_0_rgba(0,0,0,1)] transition-shadow"
+                className={`${
+                  activeScenario === index ? "block" : "hidden"
+                } relative flex flex-col overflow-hidden rounded-xl border border-slate-900 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)]`}
               >
+                <button
+                  type="button"
+                  onClick={() => setActiveScenario((prev) => (prev === 0 ? scenarios.length - 1 : prev - 1))}
+                  className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-slate-900 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-[1px_1px_0_0_rgba(0,0,0,1)]"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveScenario((prev) => (prev === scenarios.length - 1 ? 0 : prev + 1))}
+                  className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-slate-900 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 shadow-[1px_1px_0_0_rgba(0,0,0,1)]"
+                >
+                  →
+                </button>
                 <div className="border-b border-slate-900 bg-slate-50 px-5 py-4">
                   <p className="text-base font-semibold text-slate-900">{scenario.title}</p>
                   <p className="mt-1 text-xs font-medium tracking-wide text-slate-500">{scenario.tag}</p>
                 </div>
 
                 <div className="flex-1 bg-[radial-gradient(circle_at_top_right,_rgba(148,163,184,0.12),_transparent_45%)] p-5 space-y-4">
-                  {/* Request - Right aligned (user side) */}
                   <div className="flex items-start justify-end gap-3">
                     <div className="flex-1 max-w-[80%] rounded-lg border border-slate-900 bg-slate-900 p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] text-left">
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-300 mb-2 text-left">Request</p>
@@ -133,7 +159,6 @@ export function ContactSection() {
                     </div>
                   </div>
 
-                  {/* Agent Action - Left aligned (agent side) */}
                   <div className="flex items-start justify-start gap-3">
                     <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-900 bg-[#eefa79] shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
                       <ShieldCheck className="h-4 w-4 text-slate-900" />
@@ -145,11 +170,54 @@ export function ContactSection() {
                   </div>
                 </div>
 
-                {/* Ledgr Enforcement - Full width at bottom */}
                 <div className="border-t border-slate-900 bg-[#eefa79] px-5 py-4 mt-auto text-left">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle2 className="h-4 w-4 text-slate-900" />
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-900">Ledgr Enforcement</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-900">Custos Enforcement</p>
+                  </div>
+                  <p className="text-sm text-slate-900 leading-relaxed whitespace-pre-line text-left">{scenario.enforcement}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-6 hidden gap-4 sm:grid sm:grid-cols-3">
+            {scenarios.map((scenario) => (
+              <article
+                key={scenario.title}
+                className="flex flex-col overflow-hidden rounded-xl border border-slate-900 bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_0_rgba(0,0,0,1)] transition-shadow"
+              >
+                <div className="border-b border-slate-900 bg-slate-50 px-5 py-4">
+                  <p className="text-base font-semibold text-slate-900">{scenario.title}</p>
+                  <p className="mt-1 text-xs font-medium tracking-wide text-slate-500">{scenario.tag}</p>
+                </div>
+
+                <div className="flex-1 bg-[radial-gradient(circle_at_top_right,_rgba(148,163,184,0.12),_transparent_45%)] p-5 space-y-4">
+                  <div className="flex items-start justify-end gap-3">
+                    <div className="flex-1 max-w-[80%] rounded-lg border border-slate-900 bg-slate-900 p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] text-left">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-300 mb-2 text-left">Request</p>
+                      <p className="text-sm text-white leading-relaxed text-left">{scenario.request}</p>
+                    </div>
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-900 bg-white shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                      <User2 className="h-4 w-4 text-slate-900" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-start justify-start gap-3">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-900 bg-[#eefa79] shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+                      <ShieldCheck className="h-4 w-4 text-slate-900" />
+                    </div>
+                    <div className="flex-1 max-w-[80%] rounded-lg border border-slate-900 bg-white p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] text-left">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2 text-left">Agent Action</p>
+                      <p className="text-sm text-slate-700 leading-relaxed text-left">{scenario.agentAction}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-900 bg-[#eefa79] px-5 py-4 mt-auto text-left">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="h-4 w-4 text-slate-900" />
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-900">Custos Enforcement</p>
                   </div>
                   <p className="text-sm text-slate-900 leading-relaxed whitespace-pre-line text-left">{scenario.enforcement}</p>
                 </div>
