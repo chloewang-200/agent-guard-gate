@@ -6,6 +6,13 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 
+// NextAuth requires NEXTAUTH_URL to match the browser origin. Production usually sets it
+// explicitly; Vercel previews expose VERCEL_URL per deployment but rarely set NEXTAUTH_URL.
+if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
+  const v = process.env.VERCEL_URL;
+  process.env.NEXTAUTH_URL = v.startsWith("http") ? v : `https://${v}`;
+}
+
 const isProduction = process.env.NODE_ENV === "production";
 
 const hasEmailProvider =
@@ -23,6 +30,14 @@ const dynamoDocumentClient = hasDynamoAdapter
   ? DynamoDBDocument.from(
       new DynamoDB({
         region: process.env.AWS_REGION,
+        ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+          ? {
+              credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+              },
+            }
+          : {}),
       }),
       {
         marshallOptions: {
@@ -107,12 +122,28 @@ export const authOptions: NextAuthOptions = {
     async signIn() {
       return true;
     },
-    async session({ session }) {
+    async jwt({ token, user }) {
+      // Email + DynamoDB sign-in: ensure JWT carries identity so /api/auth/session stays stable after navigations.
+      if (user) {
+        token.email = user.email ?? token.email;
+        token.name = user.name ?? token.name;
+        if (user.id) token.sub = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.email = (token.email as string | undefined) ?? session.user.email ?? "";
+        session.user.name = (token.name as string | null | undefined) ?? session.user.name ?? null;
+      }
       return session;
     },
   },
   pages: {
     signIn: "/login",
+    // Avoid default `/api/auth/error` HTML on App Router (often 500s); send users to login with ?error=
+    error: "/login",
   },
+  secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
 };

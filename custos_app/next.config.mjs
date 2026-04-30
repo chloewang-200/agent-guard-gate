@@ -3,6 +3,11 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Only for local monorepos (parent lockfiles). On Vercel it can duplicate path
+// segments and break the deployer's lookup of `.next/*manifest*.json`.
+const outputFileTracingRoot =
+  process.env.VERCEL !== "1" ? path.join(__dirname, "..") : undefined;
+
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -16,19 +21,19 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // Vercel Preview injects feedback from vercel.live; without this, the toolbar logs CSP violations only.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob:",
-      "connect-src 'self'",
+      "connect-src 'self' https://vercel.live https://*.vercel.live wss://*.vercel.live",
       "frame-ancestors 'self'",
     ].join("; "),
   },
 ];
 
 const nextConfig = {
-  // Avoid tracing upward into parent folders that contain unrelated package-lock.json files.
-  outputFileTracingRoot: path.join(__dirname, ".."),
+  ...(outputFileTracingRoot ? { outputFileTracingRoot } : {}),
   async headers() {
     return [
       {

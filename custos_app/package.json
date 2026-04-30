@@ -6,6 +6,8 @@
     "dev": "next dev --webpack -p 8080",
     "build": "next build --webpack",
     "start": "next start -p 8080",
+    "deploy": "vercel",
+    "deploy:prod": "vercel --prod",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

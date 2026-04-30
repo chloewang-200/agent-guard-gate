@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 
@@ -12,12 +12,14 @@ export default function DashboardLayout({
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/login");
-    }
-  }, [status, router]);
+    if (status !== "unauthenticated") return;
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    const callback = `${pathname}${search}`;
+    router.replace(`/login?callbackUrl=${encodeURIComponent(callback)}`);
+  }, [status, router, pathname]);
 
   if (status === "loading") {
     return (
