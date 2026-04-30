@@ -1,25 +1,54 @@
 "use client";
 
 import { signIn, useSession } from "next-auth/react";
-import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const AUTH_ERROR_MESSAGES: Record<string, string> = {
-  Configuration:
-    "Server auth misconfiguration. On Vercel set NEXTAUTH_SECRET, NEXTAUTH_URL (or rely on VERCEL_URL for previews), SMTP vars, AWS credentials, and NEXTAUTH_DYNAMODB_TABLE.",
-  AccessDenied: "You do not have access.",
-  Verification: "This sign-in link expired or was already used. Request a new link.",
-  Default: "Sign-in failed. Try again.",
-};
+/** Landing waitlist section (`CTASection`); override with full URL when marketing lives elsewhere. */
+const DEFAULT_WAITLIST_HREF = "/#beta";
+
+function waitlistHref(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_WAITLIST_URL?.trim();
+  return fromEnv || DEFAULT_WAITLIST_HREF;
+}
+
+const VERIFICATION_URL_MESSAGE =
+  "This sign-in link expired or was already used. Request a new link below.";
 
 /** NextAuth callbackUrl must stay same-origin; disallow protocol-relative or absolute URLs. */
 function safeCallbackUrl(raw: string | null): string {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/overview";
   return raw;
+}
+
+function WaitlistCallout({ href }: { href: string }) {
+  const external = /^https?:\/\//i.test(href);
+  const linkClass =
+    "font-medium text-primary underline underline-offset-4 hover:no-underline";
+  return (
+    <div className="rounded-md border border-border bg-muted/40 px-3 py-3 text-caption text-muted-foreground">
+      <p className="text-foreground">
+        Custos access is limited to approved emails right now. Join the waitlist and we&apos;ll reach out when your
+        workspace can sign in.
+      </p>
+      <p className="mt-2">
+        {external ? (
+          <a href={href} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Join the waitlist
+          </a>
+        ) : (
+          <Link href={href} className={linkClass}>
+            Join the waitlist
+          </Link>
+        )}
+      </p>
+    </div>
+  );
 }
 
 function LoginForm() {
@@ -35,16 +64,19 @@ function LoginForm() {
   }, [status, postLoginDestination]);
 
   const callbackError = searchParams.get("error");
-  const urlError =
-    callbackError &&
-    (AUTH_ERROR_MESSAGES[callbackError] ?? AUTH_ERROR_MESSAGES.Default);
+  const waitlistLink = useMemo(() => waitlistHref(), []);
 
   const [email, setEmail] = useState("");
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  /** True when sign-in failed in a way we explain as invite-only / waitlist (not expired-link). */
+  const [showWaitlistNotice, setShowWaitlistNotice] = useState(false);
 
-  const combinedError = urlError ?? errorMessage;
+  const verificationOnly =
+    callbackError === "Verification" ? VERIFICATION_URL_MESSAGE : null;
+  const urlWaitlist =
+    callbackError && callbackError !== "Verification" ? true : false;
 
   // Never hide the whole page while session is "loading" — if /api/auth/session hangs or errors,
   // users otherwise see an endless spinner after following the magic link.
@@ -96,6 +128,7 @@ function LoginForm() {
                 onClick={async () => {
                   setIsLoadingEmail(true);
                   setErrorMessage(null);
+                  setShowWaitlistNotice(false);
                   setEmailSent(false);
                   try {
                     const result = await signIn("email", {
@@ -104,14 +137,16 @@ function LoginForm() {
                       redirect: false,
                     });
                     if (result?.error) {
-                      setErrorMessage(result.error);
+                      if (result.error === "Verification") {
+                        setErrorMessage(VERIFICATION_URL_MESSAGE);
+                      } else {
+                        setShowWaitlistNotice(true);
+                      }
                     } else {
                       setEmailSent(true);
                     }
                   } catch {
-                    setErrorMessage(
-                      "Auth request failed. Check server logs and verify DynamoDB table schema/GSI setup.",
-                    );
+                    setShowWaitlistNotice(true);
                   }
                   setIsLoadingEmail(false);
                 }}
@@ -123,8 +158,12 @@ function LoginForm() {
                   Sign-in link sent. Check your inbox and open it on this device.
                 </p>
               ) : null}
-              {combinedError ? (
-                <p className="text-caption text-destructive">{combinedError}</p>
+              {verificationOnly ? (
+                <p className="text-caption text-destructive">{verificationOnly}</p>
+              ) : null}
+              {errorMessage ? <p className="text-caption text-destructive">{errorMessage}</p> : null}
+              {(urlWaitlist || showWaitlistNotice) && !verificationOnly ? (
+                <WaitlistCallout href={waitlistLink} />
               ) : null}
             </div>
           </CardContent>
