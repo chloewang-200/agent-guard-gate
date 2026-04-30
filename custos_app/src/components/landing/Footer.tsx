@@ -3,7 +3,9 @@ export function Footer() {
     <footer className="border-t border-slate-200 bg-white py-10">
       <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Custos" className="h-7 w-7" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-900 bg-[#eefa79] text-xs font-bold text-slate-900 shadow-[1px_1px_0_0_rgba(0,0,0,1)]">
+            C
+          </div>
           <div>
             <span className="text-sm font-semibold text-slate-950">Custos</span>
             <p className="text-xs text-slate-500">Trust and control for agentic spend.</p>

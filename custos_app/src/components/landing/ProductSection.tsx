@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, useInView } from "framer-motion";
 import { Layers, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { useRef } from "react";

@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, useInView } from "framer-motion";
 import { AlertTriangle, Bot, CheckCircle2, Clock3, DollarSign, ShieldCheck, FileText, Building2, Shield } from "lucide-react";
 import { useRef, useState } from "react";
@@ -208,7 +210,7 @@ export function ProblemSection() {
   ];
 
   return (
-    <section className="bg-slate-50 py-24 md:py-32">
+    <section id="how-it-works" className="bg-slate-50 py-24 md:py-32">
       <div className="container" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}

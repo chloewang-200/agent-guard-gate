@@ -9,7 +9,7 @@ type WaitlistEntry = {
 };
 
 const readEndpoint = "/api/waitlist";
-const authKey = "ledgr_admin_authed";
+const authKey = "custos_admin_authed";
 const loginEndpoint = "/api/admin-login";
 const sessionEndpoint = "/api/admin-session";
 const logoutEndpoint = "/api/admin-logout";

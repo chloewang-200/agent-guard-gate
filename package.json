@@ -7,7 +7,7 @@
     "custos_app"
   ],
   "scripts": {
-    "dev": "npm run dev -w custos_app",
+    "dev": "vite",
     "dev:custos": "npm run dev -w custos_app",
     "dev:marketing": "vite",
     "build": "npm run build -w custos_app",

@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, useInView } from "framer-motion";
 import { CheckCircle2, ShieldCheck, User2, Plane, Package, Wrench, Cloud, Building2, Shield } from "lucide-react";
 import { useRef } from "react";

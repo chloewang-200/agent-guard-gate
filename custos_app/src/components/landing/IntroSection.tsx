@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, useInView } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { useRef } from "react";
@@ -31,7 +33,7 @@ export function IntroSection() {
   const isInView = useInView(ref, { once: true, margin: "-120px" });
 
   return (
-    <section className="bg-white py-12 md:py-32">
+    <section id="prototype" className="bg-white py-12 md:py-32">
       <div className="container" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}

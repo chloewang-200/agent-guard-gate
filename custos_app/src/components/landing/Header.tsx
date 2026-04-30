@@ -1,10 +1,15 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "#solution", label: "Solution" },
-  { href: "#how-it-works", label: "How It Works" },
   { href: "#use-cases", label: "Use Cases" },
+  { href: "#how-it-works", label: "How It Works" },
 ];
 
 type HeaderProps = {
@@ -13,30 +18,44 @@ type HeaderProps = {
 
 export function Header({ tryNowHref }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6">
-        <a href="#top" className="text-2xl font-bold tracking-tight text-slate-900">
-          Custos
-        </a>
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="fixed inset-x-0 top-0 z-50 rounded-b-2xl shadow-md"
+      style={{ backgroundColor: "#fef9e7" }}
+    >
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <a href="#top" className="text-2xl font-bold tracking-tight text-slate-900">
+            Custos
+          </a>
 
-        <div className="flex items-center gap-3 md:gap-8">
-          <nav className="hidden items-center gap-8 md:flex">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
+          <div className="flex flex-1 items-center justify-end gap-4 md:gap-8">
+            <nav className="hidden items-center gap-8 md:flex">
+              {navItems.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-1 text-base font-medium text-slate-900 transition-colors hover:text-slate-700"
+                >
+                  {item.label}
+                  <ChevronDown className="h-4 w-4" />
+                </a>
+              ))}
+            </nav>
 
-          <Button asChild size="sm" className="shrink-0 bg-slate-900 text-white hover:bg-slate-800">
-            <Link href={tryNowHref}>Try now</Link>
-          </Button>
+            <Button
+              asChild
+              size="sm"
+              className="shrink-0 border border-slate-900 bg-slate-900 px-4 font-semibold text-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:bg-slate-800"
+            >
+              <Link href={tryNowHref}>Try now</Link>
+            </Button>
+          </div>
         </div>
       </div>
-    </header>
+      <div className="h-px w-full bg-slate-900" />
+    </motion.header>
   );
 }
