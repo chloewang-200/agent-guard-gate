@@ -22,7 +22,7 @@ export function HeroSection({ tryNowHref }: HeroSectionProps) {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg" className="bg-slate-900 text-white hover:bg-slate-800">
-              <Link href={tryNowHref}>Try now</Link>
+              <Link href={tryNowHref}>Private Beta</Link>
             </Button>
             <a
               href="#how-it-works"

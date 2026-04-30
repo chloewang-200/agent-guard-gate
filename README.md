@@ -12,7 +12,7 @@ npm run dev
 - App URL: `http://localhost:8080`
 - Marketing landing: `/`
 - Product auth/dashboard: `/login`, `/overview`, and other existing Custos routes
-- Landing page "Try now" points to `/login` in the same app
+- Landing page "Private Beta" points to `/login` in the same app
 
 ## Scripts
 

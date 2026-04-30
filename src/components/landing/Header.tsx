@@ -65,7 +65,7 @@ export function Header() {
                 className="shrink-0 bg-slate-900 text-white hover:bg-slate-800"
               >
                 <a href={custosAppUrl} target="_blank" rel="noopener noreferrer">
-                  Try now
+                Private Beta
                 </a>
               </Button>
             ) : null}

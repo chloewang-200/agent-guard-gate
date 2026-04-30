@@ -33,7 +33,7 @@ export function Header({ tryNowHref }: HeaderProps) {
           </nav>
 
           <Button asChild size="sm" className="shrink-0 bg-slate-900 text-white hover:bg-slate-800">
-            <Link href={tryNowHref}>Try now</Link>
+            <Link href={tryNowHref}>Private Beta</Link>
           </Button>
         </div>
       </div>

@@ -52,7 +52,7 @@
 - **Rate limits (recommended):** Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` so middleware can throttle `POST /api/auth/signin/email` (and optionally non-auth `POST /api/*` via `CUSTOS_ENABLE_API_RATE_LIMIT=true`).
 - **Rate limits (fallback):** If Upstash is not configured yet, enforce equivalent limits at the edge/proxy layer (e.g. Cloudflare WAF rate limiting, Vercel Firewall/Edge Config rules) for `POST /api/auth/signin/email` at minimum.
 - **Errors / APM:** 5xx paths call `captureException` in `@/lib/observability`; middleware denials emit low-cardinality notices via `captureMessage`. Without `SENTRY_DSN`, logs stay local (`console`). With `SENTRY_DSN`, events are sent to Sentry.
-- **Marketing site:** If you use the `agent-guard-gate` repo, set `VITE_CUSTOS_APP_URL` to this app’s production URL for the “Try now” link.
+- **Marketing site:** If you use the `agent-guard-gate` repo, set `VITE_CUSTOS_APP_URL` to this app’s production URL for the “Private Beta” link.
 - **Auth dependency note:** `next-auth@4` currently expects `nodemailer@^7`, so keep `nodemailer` on v7 until that peer range changes upstream; then re-evaluate upgrading and remove this constraint.
 
 ## Monorepo sync workflow
