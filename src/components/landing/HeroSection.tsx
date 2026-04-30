@@ -110,7 +110,7 @@ export function HeroSection() {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f0fb8a")}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#eefa79")}
                   >
-                    Get Started For Free
+                    Sign Up for our Private Beta!
                   </Button>
                 </div>
                 {statusMessage && (
