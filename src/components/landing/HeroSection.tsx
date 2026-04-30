@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AnimatedDashboard } from "./AnimatedDashboard";
+import { WaitlistForm } from "@/components/landing/WaitlistForm";
 
 export function HeroSection() {
   return (
@@ -41,23 +40,12 @@ export function HeroSection() {
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center lg:justify-start">
-              <div className="relative flex-1 max-w-md">
-                <div className="relative w-full">
-                  <Input
-                    type="email"
-                    placeholder="What's your work email?"
-                    className="w-full h-14 rounded-lg border border-slate-900 bg-white pl-6 pr-40 text-base text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
-                  />
-                  <Button
-                    asChild
-                    className="absolute right-2 top-2 h-10 rounded-lg border border-slate-900 px-5 text-sm font-semibold text-slate-900 z-50 shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
-                    style={{ backgroundColor: '#eefa79' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0fb8a'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#eefa79'}
-                  >
-                    <a href="#beta">Get Started For Free</a>
-                  </Button>
-                </div>
+              <div className="relative w-full max-w-md">
+                <WaitlistForm
+                  variant="hero"
+                  buttonLabel="Get Started For Free"
+                  placeholder="What's your work email?"
+                />
               </div>
             </div>
           </motion.div>

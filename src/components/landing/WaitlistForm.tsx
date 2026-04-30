@@ -5,15 +5,23 @@ import { toast } from "@/components/ui/use-toast";
 
 type WaitlistFormProps = {
   size?: "default" | "lg";
+  variant?: "default" | "hero";
   className?: string;
   buttonLabel?: string;
   placeholder?: string;
 };
 
+const heroInputClass =
+  "h-14 rounded-lg border border-slate-900 bg-white pl-6 pr-[12.5rem] sm:pr-44 text-base text-slate-900 placeholder:text-slate-400 focus-visible:border-slate-900 focus-visible:ring-slate-900 shadow-[2px_2px_0_0_rgba(0,0,0,1)]";
+
+const heroButtonClass =
+  "absolute right-2 top-2 z-10 h-10 whitespace-nowrap rounded-lg border border-slate-900 px-2 text-[11px] font-semibold text-slate-900 shadow-[2px_2px_0_0_rgba(0,0,0,1)] bg-[#eefa79] hover:bg-[#f0fb8a] sm:px-4 sm:text-sm";
+
 const endpoint = "/api/waitlist";
 
 export function WaitlistForm({
   size = "default",
+  variant = "default",
   className,
   buttonLabel = "Join beta",
   placeholder = "Enter your work email",
@@ -63,6 +71,28 @@ export function WaitlistForm({
 
   const inputSize = size === "lg" ? "h-12 text-base" : "h-10 text-sm";
   const buttonSize = size === "lg" ? "lg" : "default";
+
+  if (variant === "hero") {
+    return (
+      <form
+        className={`relative w-full ${className ?? ""}`}
+        onSubmit={handleSubmit}
+      >
+        <Input
+          type="email"
+          name="email"
+          placeholder={placeholder}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          className={`w-full ${heroInputClass}`}
+          required
+        />
+        <Button type="submit" className={heroButtonClass}>
+          {buttonLabel}
+        </Button>
+      </form>
+    );
+  }
 
   return (
     <form

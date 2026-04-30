@@ -49,8 +49,8 @@ export function ProductSection() {
               >
                 <path
                   d="M 0 15 Q 20 10, 40 12 T 80 10 T 120 12 T 160 10 T 200 12"
-                  stroke="#0f172a"
-                  strokeWidth="4"
+                  stroke="#3b82f6"
+                  strokeWidth="6"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
