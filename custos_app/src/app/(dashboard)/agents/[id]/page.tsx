@@ -11,6 +11,8 @@ import { getAgent } from "@/lib/api/agents";
 import { AgentStatusBadge } from "@/components/status/StatusBadge";
 import { ApiKeyRevealCard } from "@/components/agents/ApiKeyRevealCard";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { isInvoiceFeatureEnabledClient } from "@/lib/features";
+import { FileText } from "lucide-react";
 
 export default function AgentDetailPage() {
   const params = useParams();
@@ -45,9 +47,19 @@ export default function AgentDetailPage() {
           </p>
         </div>
         <AgentStatusBadge status={agent.status} />
-        <Button variant="outline" onClick={() => router.push(`/agents/${id}/edit`)}>
-          Edit
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {agent.templateType === "invoice" && isInvoiceFeatureEnabledClient() ? (
+            <Button asChild>
+              <Link href={`/templates/invoice?agentId=${encodeURIComponent(agent.id)}`}>
+                <FileText className="mr-2 h-4 w-4" />
+                Run Invoice Agent
+              </Link>
+            </Button>
+          ) : null}
+          <Button variant="outline" onClick={() => router.push(`/agents/${id}/edit`)}>
+            Edit
+          </Button>
+        </div>
       </div>
 
       {agent.description && (

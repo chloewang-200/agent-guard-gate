@@ -32,4 +32,4 @@ jobs:
         run: npm run build
         env:
           NEXTAUTH_SECRET: ci-build-placeholder-secret-at-least-32-chars
-          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_URL: http://localhost:8080

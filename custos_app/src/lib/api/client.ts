@@ -12,7 +12,7 @@ export const getBaseUrl = () => {
   const nextAuth = process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "");
   if (nextAuth) return nextAuth;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
+  return "http://localhost:8080";
 };
 
 export async function apiFetch<T>(

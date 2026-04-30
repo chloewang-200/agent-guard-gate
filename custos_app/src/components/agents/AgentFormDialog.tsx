@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zodResolver";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -14,11 +14,13 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -30,9 +32,25 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { createAgent, updateAgent } from "@/lib/api/agents";
 import { agentFormSchema, type AgentFormValues } from "@/lib/validators/agent";
-import { AGENT_TEMPLATE_TYPES, AGENT_ROLES } from "@/lib/constants";
+import {
+  AGENT_TEMPLATE_TYPES,
+  AGENT_ROLES,
+  AGENT_STATUSES,
+  AGENT_CAPABILITY_OPTIONS,
+} from "@/lib/constants";
+import type { AgentCapability } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { getWallets } from "@/lib/api/wallets";
+
+function capabilityIdsToObjects(ids: string[]): AgentCapability[] {
+  const byId = new Map<string, { id: string; name: string }>(
+    AGENT_CAPABILITY_OPTIONS.map((o) => [o.id, o]),
+  );
+  return ids.map((id) => {
+    const opt = byId.get(id);
+    return opt ? { id: opt.id, name: opt.name } : { id, name: id };
+  });
+}
 
 interface AgentFormDialogProps {
   open: boolean;
@@ -86,7 +104,7 @@ export function AgentFormDialog({
       templateType: values.templateType,
       assignedWalletId: values.assignedWalletId,
       role: values.role,
-      capabilities: values.capabilities,
+      capabilities: capabilityIdsToObjects(values.capabilities),
       status: values.status,
     };
     createMutation.mutate(body);
@@ -208,6 +226,67 @@ export function AgentFormDialog({
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Separator />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {AGENT_STATUSES.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="capabilities"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Capabilities</FormLabel>
+                  <FormDescription>
+                    What this agent is allowed to do under wallet policy.
+                  </FormDescription>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {AGENT_CAPABILITY_OPTIONS.map((opt) => {
+                      const selected = field.value.includes(opt.id);
+                      return (
+                        <Button
+                          key={opt.id}
+                          type="button"
+                          variant={selected ? "secondary" : "outline"}
+                          size="sm"
+                          className="h-auto min-h-9 whitespace-normal px-3 py-1.5 text-left font-normal"
+                          onClick={() => {
+                            field.onChange(
+                              selected
+                                ? field.value.filter((id: string) => id !== opt.id)
+                                : [...field.value, opt.id],
+                            );
+                          }}
+                        >
+                          {opt.name}
+                        </Button>
+                      );
+                    })}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

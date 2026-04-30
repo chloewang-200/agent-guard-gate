@@ -54,6 +54,20 @@ export async function fundWallet(walletId: string, body: FundWalletBody): Promis
   return apiPost<Wallet>(`/api/wallets/${walletId}/fund`, body);
 }
 
+export async function createWalletFundIntent(
+  walletId: string,
+  body: { amount: number }
+): Promise<{ clientSecret: string }> {
+  return apiPost<{ clientSecret: string }>(`/api/wallets/${walletId}/fund/intent`, body);
+}
+
+export async function confirmWalletStripeFund(
+  walletId: string,
+  body: { paymentIntentId: string }
+): Promise<{ credited?: boolean; reason?: string; wallet?: Wallet }> {
+  return apiPost(`/api/wallets/${walletId}/fund/stripe-confirm`, body);
+}
+
 export async function getWalletTransactions(walletId: string, params?: { page?: number }): Promise<PaginatedResponse<import("@/lib/types").Transaction>> {
   const search = new URLSearchParams();
   if (params?.page != null) search.set("page", String(params.page));

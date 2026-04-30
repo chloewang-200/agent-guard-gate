@@ -25,7 +25,7 @@
 
    Copy `.env.example` to `.env.local` and set:
 
-   - `NEXTAUTH_URL` (e.g. `http://localhost:3000` in dev; **HTTPS canonical URL in production**)
+   - `NEXTAUTH_URL` (e.g. `http://localhost:8080` in dev; **HTTPS canonical URL in production**)
    - `NEXTAUTH_SECRET` (e.g. `openssl rand -base64 32`)
    - Email / magic link: `EMAIL_SERVER_*`, `EMAIL_FROM`, plus `AWS_REGION` and `NEXTAUTH_DYNAMODB_TABLE` for the DynamoDB adapter
    - Optional: `NEXT_PUBLIC_API_URL` if the browser must call a different API host (otherwise same-origin `/api`)
@@ -40,7 +40,7 @@
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000). Unauthenticated users are redirected to `/login`; after sign-in they land on `/overview`.
+   Open [http://localhost:8080](http://localhost:8080). Unauthenticated users are redirected to `/login`; after sign-in they land on `/overview`.
 
 ## Production checklist
 

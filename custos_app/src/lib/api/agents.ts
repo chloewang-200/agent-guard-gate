@@ -1,4 +1,4 @@
-import type { Agent, PaginatedResponse } from "@/lib/types";
+import type { Agent, AgentCapability, PaginatedResponse } from "@/lib/types";
 import { apiGet, apiPost, apiPatch, apiDelete } from "./client";
 import type { ApiKeyResponse } from "@/lib/types";
 
@@ -16,7 +16,6 @@ export async function getAgents(params?: {
   if (params?.walletId) search.set("walletId", params.walletId);
   if (params?.type) search.set("type", params.type);
   const q = search.toString();
-  // TODO: wire to real GET /api/agents when backend exists
   return apiGet<PaginatedResponse<Agent>>(`/api/agents${q ? `?${q}` : ""}`);
 }
 
@@ -30,7 +29,7 @@ export interface CreateAgentBody {
   templateType: string;
   assignedWalletId: string;
   role: string;
-  capabilities: string[];
+  capabilities: AgentCapability[];
   status?: string;
 }
 

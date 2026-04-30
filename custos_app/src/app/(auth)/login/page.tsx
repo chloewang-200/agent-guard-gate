@@ -26,7 +26,7 @@ export default function LoginPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">Sign in</CardTitle>
             <CardDescription>
-              Enter your email and we will send a secure magic link.
+              Enter your email and we&apos;ll send you a secure link to sign in.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -65,11 +65,11 @@ export default function LoginPage() {
                   setIsLoadingEmail(false);
                 }}
               >
-                {isLoadingEmail ? "Sending magic link..." : "Send magic link"}
+                {isLoadingEmail ? "Sending..." : "Send sign-in link"}
               </Button>
               {emailSent ? (
                 <p className="text-caption text-emerald-600">
-                  Magic link sent. Check your inbox and open the link on this device.
+                  Sign-in link sent. Check your inbox and open it on this device.
                 </p>
               ) : null}
               {errorMessage ? <p className="text-caption text-destructive">{errorMessage}</p> : null}

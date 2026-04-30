@@ -1,9 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,12 +17,19 @@ import { Progress } from "@/components/ui/progress";
 export default function WalletDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const id = params.id as string;
   const [fundOpen, setFundOpen] = useState(searchParams.get("fund") === "1");
   const { data: wallet, isLoading } = useQuery({
     queryKey: ["wallets", id],
     queryFn: () => getWallet(id),
   });
+
+  useEffect(() => {
+    if (searchParams.get("funded") !== "1") return;
+    void queryClient.invalidateQueries({ queryKey: ["wallets", id] });
+    void queryClient.invalidateQueries({ queryKey: ["wallets"] });
+  }, [searchParams, id, queryClient]);
 
   if (isLoading || !wallet) {
     return (

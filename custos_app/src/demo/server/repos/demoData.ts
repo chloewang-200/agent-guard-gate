@@ -7,6 +7,7 @@ import {
 import type {
   Agent,
   AgentCapability,
+  Evidence,
   ReviewItem,
   Transaction,
   TransactionStatus,
@@ -14,6 +15,25 @@ import type {
   WalletPolicy,
 } from "@/lib/types";
 import { DEMO_TABLES, demoDynamo, newId, nowIso } from "@/demo/server/dynamo/client";
+
+type TransactionExtendedPayload = {
+  purpose?: Transaction["purpose"];
+  context?: Transaction["context"];
+  riskScore?: number;
+  riskFlags?: string[];
+  citedRules?: Transaction["citedRules"];
+  agentDecision?: Transaction["agentDecision"];
+  matchedPayee?: Transaction["matchedPayee"];
+  policyEvaluation?: Transaction["policyEvaluation"];
+  auditEvents?: Transaction["auditEvents"];
+  railType?: string;
+  sourceKind?: string;
+  payoutStatus?: string;
+  payoutProvider?: string;
+  payoutExternalId?: string;
+  payoutError?: string;
+  payoutAttemptedAt?: string;
+};
 
 type SessionLike = { user?: { email?: string | null } } | null;
 
@@ -77,10 +97,23 @@ type TransactionItem = {
   category?: string;
   memo?: string;
   evidenceJson?: string;
+  /** JSON blob: audit/policy/context/evidence-adjacent fields (additive on custos-transactions items). */
+  extendedPayloadJson?: string;
   createdAt: string;
   updatedAt: string;
   settledAt?: string;
 };
+
+function extendedPayloadFromItem(item: TransactionItem): TransactionExtendedPayload | null {
+  const raw = item.extendedPayloadJson;
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  try {
+    const p = JSON.parse(raw) as TransactionExtendedPayload;
+    return Object.keys(p).length === 0 ? null : p;
+  } catch {
+    return null;
+  }
+}
 
 function parseJson<T>(value: unknown, fallback: T): T {
   if (typeof value !== "string" || !value.trim()) return fallback;
@@ -89,6 +122,85 @@ function parseJson<T>(value: unknown, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function normalizeEvidenceFromJson(evidenceJson: string | undefined, createdAt: string): Evidence[] {
+  const raw = parseJson(evidenceJson, [] as unknown[]);
+  if (!Array.isArray(raw)) return [];
+  return raw.map((e, i) => {
+    const o = e && typeof e === "object" ? (e as Record<string, unknown>) : {};
+    return {
+      id: typeof o.id === "string" ? o.id : `ev_${i}_${createdAt}`,
+      type: typeof o.type === "string" ? o.type : "attachment",
+      url: typeof o.url === "string" ? o.url : undefined,
+      filename: typeof o.filename === "string" ? o.filename : undefined,
+      fileId: typeof o.fileId === "string" ? o.fileId : undefined,
+      extractedFields:
+        o.extractedFields && typeof o.extractedFields === "object"
+          ? (o.extractedFields as Record<string, unknown>)
+          : undefined,
+      confidence: typeof o.confidence === "number" ? o.confidence : undefined,
+      uploadedAt: typeof o.uploadedAt === "string" ? o.uploadedAt : createdAt,
+    };
+  });
+}
+
+function normalizeEvidenceInput(evidence: Evidence[] | undefined, createdAt: string): Evidence[] {
+  if (!evidence?.length) return [];
+  return evidence.map((e, i) => ({
+    id: e.id ?? `ev_${i}_${createdAt}`,
+    type: e.type,
+    url: e.url,
+    filename: e.filename,
+    fileId: e.fileId,
+    extractedFields: e.extractedFields,
+    confidence: e.confidence,
+    uploadedAt: e.uploadedAt ?? createdAt,
+  }));
+}
+
+function compactExtendedPayload(input: Partial<Transaction>): TransactionExtendedPayload {
+  const p: TransactionExtendedPayload = {};
+  if (input.purpose !== undefined) p.purpose = input.purpose;
+  if (input.context !== undefined) p.context = input.context;
+  if (input.riskScore !== undefined) p.riskScore = input.riskScore;
+  if (input.riskFlags !== undefined) p.riskFlags = input.riskFlags;
+  if (input.citedRules !== undefined) p.citedRules = input.citedRules;
+  if (input.agentDecision !== undefined) p.agentDecision = input.agentDecision;
+  if (input.matchedPayee !== undefined) p.matchedPayee = input.matchedPayee;
+  if (input.policyEvaluation !== undefined) p.policyEvaluation = input.policyEvaluation;
+  if (input.auditEvents !== undefined) p.auditEvents = input.auditEvents;
+  if (input.railType !== undefined) p.railType = input.railType;
+  if (input.sourceKind !== undefined) p.sourceKind = input.sourceKind;
+  if (input.payoutStatus !== undefined) p.payoutStatus = input.payoutStatus;
+  if (input.payoutProvider !== undefined) p.payoutProvider = input.payoutProvider;
+  if (input.payoutExternalId !== undefined) p.payoutExternalId = input.payoutExternalId;
+  if (input.payoutError !== undefined) p.payoutError = input.payoutError;
+  if (input.payoutAttemptedAt !== undefined) p.payoutAttemptedAt = input.payoutAttemptedAt;
+  return p;
+}
+
+function mergeTxWithExtended(tx: Transaction, ext: TransactionExtendedPayload | null): Transaction {
+  if (!ext || Object.keys(ext).length === 0) return tx;
+  return {
+    ...tx,
+    purpose: ext.purpose ?? tx.purpose,
+    context: ext.context ?? tx.context,
+    riskScore: ext.riskScore ?? tx.riskScore,
+    riskFlags: ext.riskFlags ?? tx.riskFlags,
+    citedRules: ext.citedRules ?? tx.citedRules,
+    agentDecision: ext.agentDecision ?? tx.agentDecision,
+    matchedPayee: ext.matchedPayee ?? tx.matchedPayee,
+    policyEvaluation: ext.policyEvaluation ?? tx.policyEvaluation,
+    auditEvents: ext.auditEvents ?? tx.auditEvents,
+    railType: ext.railType ?? tx.railType,
+    sourceKind: ext.sourceKind ?? tx.sourceKind,
+    payoutStatus: ext.payoutStatus ?? tx.payoutStatus,
+    payoutProvider: ext.payoutProvider ?? tx.payoutProvider,
+    payoutExternalId: ext.payoutExternalId ?? tx.payoutExternalId,
+    payoutError: ext.payoutError ?? tx.payoutError,
+    payoutAttemptedAt: ext.payoutAttemptedAt ?? tx.payoutAttemptedAt,
+  };
 }
 
 async function getOrCreateUserByEmail(email: string): Promise<UserItem> {
@@ -307,6 +419,62 @@ export async function fundWallet(id: string, amount: number): Promise<Wallet | n
   return walletFromItem(updated);
 }
 
+export async function getWalletWorkspaceId(walletId: string): Promise<string | null> {
+  const result = await demoDynamo.send(
+    new GetCommand({
+      TableName: DEMO_TABLES.wallets,
+      Key: { id: walletId },
+    })
+  );
+  const item = result.Item as WalletItem | undefined;
+  return item?.workspaceId ?? null;
+}
+
+function isConditionalCheckFailed(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "name" in e &&
+    (e as { name: string }).name === "ConditionalCheckFailedException"
+  );
+}
+
+/** Returns true if this PaymentIntent id was claimed for crediting (first writer wins). */
+export async function claimStripeCreditForPaymentIntent(paymentIntentId: string): Promise<boolean> {
+  try {
+    await demoDynamo.send(
+      new PutCommand({
+        TableName: DEMO_TABLES.stripeCredits,
+        Item: { paymentIntentId, createdAt: nowIso() },
+        ConditionExpression: "attribute_not_exists(paymentIntentId)",
+      })
+    );
+    return true;
+  } catch (e: unknown) {
+    if (isConditionalCheckFailed(e)) return false;
+    throw e;
+  }
+}
+
+export async function creditWalletFromStripePaymentIntent(pi: {
+  id: string;
+  metadata?: Record<string, string> | null;
+  amount_received?: number | null;
+  amount: number;
+}): Promise<{ credited: boolean; reason?: string }> {
+  const walletId = pi.metadata?.walletId;
+  const workspaceId = pi.metadata?.workspaceId;
+  if (!walletId || !workspaceId) return { credited: false, reason: "missing_metadata" };
+  const ws = await getWalletWorkspaceId(walletId);
+  if (ws !== workspaceId) return { credited: false, reason: "workspace_mismatch" };
+  const amountCents = pi.amount_received ?? pi.amount;
+  if (amountCents < 1) return { credited: false, reason: "zero_amount" };
+  const claimed = await claimStripeCreditForPaymentIntent(pi.id);
+  if (!claimed) return { credited: false, reason: "already_processed" };
+  await fundWallet(walletId, amountCents / 100);
+  return { credited: true };
+}
+
 export async function deleteWallet(id: string) {
   await demoDynamo.send(
     new DeleteCommand({
@@ -442,7 +610,7 @@ function txFromItem(
   item: TransactionItem,
   extras?: { agentName?: string; walletName?: string }
 ): Transaction {
-  return {
+  const core: Transaction = {
     id: item.id,
     requestedAt: item.createdAt,
     agentId: item.agentId,
@@ -458,9 +626,10 @@ function txFromItem(
     status: (item.status as TransactionStatus) ?? "pending_review",
     policyResult: (item.policyResult as Transaction["policyResult"]) ?? "within_policy",
     reviewState: item.reviewState,
-    evidence: parseJson(item.evidenceJson, []),
+    evidence: normalizeEvidenceFromJson(item.evidenceJson, item.createdAt),
     settledAt: item.settledAt,
   };
+  return mergeTxWithExtended(core, extendedPayloadFromItem(item));
 }
 
 async function getWalletName(walletId: string) {
@@ -540,6 +709,8 @@ export async function createTransactionRequest(
   input: Partial<Transaction>
 ): Promise<Transaction> {
   const now = nowIso();
+  const evidenceNorm = normalizeEvidenceInput(input.evidence, now);
+  const extended = compactExtendedPayload(input);
   const item: TransactionItem = {
     id: newId("tx"),
     workspaceId,
@@ -554,7 +725,8 @@ export async function createTransactionRequest(
     vendor: input.vendor,
     category: input.category,
     memo: input.memo,
-    evidenceJson: JSON.stringify(input.evidence ?? []),
+    evidenceJson: JSON.stringify(evidenceNorm),
+    ...(Object.keys(extended).length > 0 ? { extendedPayloadJson: JSON.stringify(extended) } : {}),
     createdAt: now,
     updatedAt: now,
   };
@@ -564,10 +736,10 @@ export async function createTransactionRequest(
       Item: item,
     })
   );
-  return txFromItem(item, {
-    agentName: await getAgentName(item.agentId),
-    walletName: await getWalletName(item.walletId),
-  });
+
+  const full = await getTransactionById(item.id);
+  if (!full) throw new Error("Failed to load transaction after create");
+  return full;
 }
 
 export async function updateTransactionStatus(
@@ -608,9 +780,51 @@ export async function updateTransactionStatus(
 
 export async function reviewTransaction(
   id: string,
-  decision: "approve" | "reject"
+  decision: "approve" | "reject",
+  opts?: { note?: string; actor?: string }
 ): Promise<Transaction | null> {
-  return updateTransactionStatus(id, decision === "approve" ? "approved" : "blocked");
+  const current = await demoDynamo.send(
+    new GetCommand({
+      TableName: DEMO_TABLES.transactions,
+      Key: { id },
+    })
+  );
+  const existing = current.Item as TransactionItem | undefined;
+  if (!existing) return null;
+
+  const status = decision === "approve" ? "approved" : "blocked";
+  const prevExt: TransactionExtendedPayload = extendedPayloadFromItem(existing) ?? {};
+  const events = [...(prevExt.auditEvents ?? [])];
+  events.push({
+    id: newId("evt"),
+    timestamp: nowIso(),
+    action: decision === "approve" ? "Approved by reviewer" : "Declined by reviewer",
+    type: "human",
+    actor: opts?.actor,
+    detail: opts?.note,
+  });
+
+  const updated: TransactionItem = {
+    ...existing,
+    status,
+    reviewState:
+      status === "approved"
+        ? "approved"
+        : status === "blocked"
+          ? "rejected"
+          : existing.reviewState,
+    extendedPayloadJson: JSON.stringify({ ...prevExt, auditEvents: events }),
+    updatedAt: nowIso(),
+  };
+
+  await demoDynamo.send(
+    new PutCommand({
+      TableName: DEMO_TABLES.transactions,
+      Item: updated,
+    })
+  );
+
+  return getTransactionById(id);
 }
 
 export async function listReviewQueue(workspaceId: string): Promise<ReviewItem[]> {
