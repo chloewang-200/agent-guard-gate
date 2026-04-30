@@ -36,19 +36,31 @@ export function WalletsOverviewSection({ wallets, isLoading }: WalletsOverviewSe
   return (
     <>
       <div className="rounded-xl border border-border bg-card">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm font-semibold text-foreground">Wallets</h2>
-          {hasWallets && (
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/wallets">View all</Link>
-            </Button>
-          )}
+          {hasWallets ? (
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 shrink-0 gap-1.5 px-3 font-medium"
+                onClick={() => setAddWalletOpen(true)}
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden />
+                Add wallet
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 shrink-0 px-3 text-muted-foreground hover:text-foreground" asChild>
+                <Link href="/wallets">View all</Link>
+              </Button>
+            </div>
+          ) : null}
         </div>
         <div className="p-4">
           {!hasWallets ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 py-12 px-4 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Wallet className="h-7 w-7" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-neutral-950 shadow-sm ring-1 ring-black/5 dark:bg-neutral-800 dark:text-neutral-50 dark:ring-white/10">
+                <Wallet className="h-7 w-7" strokeWidth={2} />
               </div>
               <h3 className="mt-4 text-sm font-medium text-foreground">
                 No wallets yet
@@ -74,8 +86,8 @@ export function WalletsOverviewSection({ wallets, isLoading }: WalletsOverviewSe
                     onClick={() => router.push(`/wallets/${wallet.id}`)}
                     className="flex w-full items-center gap-3 rounded-lg px-2 py-3 text-left transition-colors hover:bg-muted/50"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <Wallet className="h-5 w-5" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-950 shadow-sm ring-1 ring-black/5 dark:bg-neutral-800 dark:text-neutral-50 dark:ring-white/10">
+                      <Wallet className="h-5 w-5" strokeWidth={2} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground">
@@ -98,8 +110,18 @@ export function WalletsOverviewSection({ wallets, isLoading }: WalletsOverviewSe
             </ul>
           )}
           {hasWallets && wallets.length > 6 && (
-            <div className="mt-2 border-t border-border pt-2">
-              <Button variant="ghost" size="sm" className="w-full" asChild>
+            <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 w-full gap-1.5 font-medium sm:w-auto"
+                onClick={() => setAddWalletOpen(true)}
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden />
+                Add wallet
+              </Button>
+              <Button variant="ghost" size="sm" className="h-9 w-full text-muted-foreground hover:text-foreground sm:w-auto" asChild>
                 <Link href="/wallets">View all {wallets.length} wallets</Link>
               </Button>
             </div>

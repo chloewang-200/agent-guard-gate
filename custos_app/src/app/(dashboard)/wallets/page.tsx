@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Plus, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,8 +29,17 @@ import { WalletFormDialog } from "@/components/wallets/WalletFormDialog";
 
 export default function WalletsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("create") !== "1") return;
+    setFormOpen(true);
+    router.replace(pathname);
+  }, [searchParams, pathname, router]);
+
   const { data, isLoading } = useQuery({
     queryKey: ["wallets", { page: 1, pageSize: 50 }],
     queryFn: () => getWallets({ page: 1, pageSize: 50 }),

@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { uploadInvoice, extractInvoice } from "@/lib/api/invoice";
 import { requestTransaction } from "@/lib/api/transactions";
 import type { InvoiceExtractionResult } from "@/lib/types";
+import { buildInvoiceTrustFields } from "@/lib/invoiceSubmissionTrust";
 import { TransactionStatusBadge } from "@/components/status/StatusBadge";
 import { formatCurrency } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -18,12 +21,16 @@ import { getWallets } from "@/lib/api/wallets";
 import { getAgents } from "@/lib/api/agents";
 
 export function InvoiceAgentClient() {
+  const searchParams = useSearchParams();
+  const urlAgentId = searchParams.get("agentId")?.trim() ?? "";
+
   const [file, setFile] = useState<File | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
   const [extraction, setExtraction] = useState<InvoiceExtractionResult | null>(null);
   const [txResult, setTxResult] = useState<Awaited<ReturnType<typeof requestTransaction>> | null>(null);
   const [walletId, setWalletId] = useState("");
   const [agentId, setAgentId] = useState("");
+  const [purpose, setPurpose] = useState("");
 
   const { data: walletsData } = useQuery({
     queryKey: ["wallets", { page: 1, pageSize: 100 }],
@@ -35,6 +42,20 @@ export function InvoiceAgentClient() {
   });
   const wallets = walletsData?.data ?? [];
   const agents = agentsData?.data ?? [];
+
+  useEffect(() => {
+    if (!urlAgentId || agents.length === 0) return;
+    const agent = agents.find((a) => a.id === urlAgentId);
+    if (!agent) {
+      setAgentId("");
+      setWalletId("");
+      return;
+    }
+    setAgentId(agent.id);
+    setWalletId(agent.assignedWalletId);
+  }, [urlAgentId, agents]);
+
+  const linkedAgent = urlAgentId ? agents.find((a) => a.id === urlAgentId) : undefined;
 
   const uploadMutation = useMutation({
     mutationFn: (f: File) => uploadInvoice(f),
@@ -61,6 +82,7 @@ export function InvoiceAgentClient() {
       setFileId(null);
       setExtraction(null);
       setTxResult(null);
+      setPurpose("");
     }
   }
 
@@ -76,15 +98,89 @@ export function InvoiceAgentClient() {
   function handleSubmitRequest() {
     if (!extraction?.amount || !walletId || !agentId) return;
     const wallet = wallets.find((w) => w.id === walletId);
+    const agent = agents.find((a) => a.id === agentId);
+    const ts = new Date().toISOString();
+    const purposeLine =
+      purpose.trim() || extraction.memo?.trim() || "Invoice agent payment request";
+
+    const trust = buildInvoiceTrustFields({
+      extraction,
+      purpose: purposeLine,
+      fileId,
+      originalFilename: file?.name,
+      payeeOverrideId: "",
+      agentName: agent?.name,
+      viaChat: false,
+    });
+
     requestMutation.mutate({
       agentId,
       walletId,
       amount: extraction.amount,
       currency: wallet?.currency ?? "USD",
       vendor: extraction.vendor,
-      memo: extraction.memo,
+      memo: extraction.memo ?? purposeLine,
+      policyResult: "within_policy",
+      purpose: purposeLine,
+      sourceKind: "invoice_upload",
+      railType: extraction.railType,
+      context: {
+        extraction,
+        source: "invoice_agent",
+        fileId: fileId ?? undefined,
+        invoiceNumber: extraction.invoiceNumber,
+        dueDate: extraction.dueDate,
+        extractionConfidence: extraction.confidence,
+        originalFilename: file?.name,
+        trustBrief:
+          "Invoice submission with default citations (workflow, evidence, purpose, payee rules) and agentDecision trace.",
+      },
+      citedRules: trust.citedRules,
+      agentDecision: trust.agentDecision,
+      policyEvaluation: [
+        {
+          check: "Supporting evidence",
+          result: fileId ? "pass" : "fail",
+          detail: fileId ? "Invoice file attached" : "No invoice file reference",
+        },
+        {
+          check: "Extraction confidence",
+          result: "pass",
+          detail:
+            extraction.confidence != null
+              ? `${Math.round(extraction.confidence * 100)}% pipeline confidence`
+              : "Extraction completed (fixed-path confidence)",
+        },
+      ],
+      auditEvents: [
+        {
+          id: `evt_submit_${Date.now()}`,
+          timestamp: ts,
+          action: "Invoice payment request submitted",
+          type: "request",
+          detail: JSON.stringify({ fileId, walletId, agentId }, null, 2),
+        },
+      ],
       evidence: fileId
-        ? [{ type: "invoice", fileId, ...extraction }]
+        ? [
+            {
+              id: `ev_${fileId}`,
+              type: "invoice",
+              fileId,
+              filename: file?.name ?? "invoice",
+              uploadedAt: ts,
+              extractedFields: {
+                vendor: extraction.vendor,
+                invoiceNumber: extraction.invoiceNumber,
+                amount: extraction.amount,
+                dueDate: extraction.dueDate,
+                railType: extraction.railType,
+                sourceFileId: extraction.sourceFileId,
+                confidence: extraction.confidence,
+              },
+              confidence: extraction.confidence,
+            },
+          ]
         : undefined,
     });
   }
@@ -96,6 +192,30 @@ export function InvoiceAgentClient() {
         <p className="mt-1 text-body-sm text-muted-foreground">
           Upload an invoice, extract fields, and submit a payment request for policy evaluation.
         </p>
+        {linkedAgent ? (
+          <p className="mt-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-body-sm text-foreground">
+            Using agent{" "}
+            <Link href={`/agents/${linkedAgent.id}`} className="font-medium underline underline-offset-4">
+              {linkedAgent.name}
+            </Link>
+            {linkedAgent.assignedWalletName ? (
+              <>
+                {" "}
+                · wallet <span className="font-medium">{linkedAgent.assignedWalletName}</span>
+              </>
+            ) : null}
+            .
+          </p>
+        ) : urlAgentId ? (
+          <p className="mt-2 text-body-sm text-amber-700 dark:text-amber-300">
+            No agent matches this link — pick an agent and wallet below, or open this page from your Invoice Agent
+            in{" "}
+            <Link href="/agents" className="underline underline-offset-4">
+              Agents
+            </Link>
+            .
+          </p>
+        ) : null}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -181,6 +301,23 @@ export function InvoiceAgentClient() {
                     <p>{Math.round(extraction.confidence * 100)}%</p>
                   </div>
                 )}
+                {extraction.railType ? (
+                  <div>
+                    <Label className="text-muted-foreground">Suggested rail</Label>
+                    <p className="capitalize">{extraction.railType.replace(/_/g, " ")}</p>
+                  </div>
+                ) : null}
+              </div>
+              <div className="space-y-1.5 pt-2">
+                <Label htmlFor="invoice-purpose">Business purpose (optional)</Label>
+                <Textarea
+                  id="invoice-purpose"
+                  rows={2}
+                  className="resize-none text-sm"
+                  placeholder="Why this payment should go through — shown on the transaction audit trail."
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                />
               </div>
               <div className="flex flex-wrap gap-2 pt-2">
                 <Label className="w-full text-muted-foreground">Submit payment request</Label>

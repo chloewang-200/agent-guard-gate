@@ -60,15 +60,15 @@ export default function OverviewPage() {
         </p>
       </div>
 
-      {/* Top: Total Agents + list | Total Wallets + list */}
+      {/* Top: Total Wallets + list | Total Agents + list */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
-          <TotalAgentsCard total={totalAgents} activeCount={activeAgents} />
-          <AgentsOverviewSection agents={agents} isLoading={agentsLoading} />
-        </div>
         <div className="space-y-6">
           <TotalWalletsCard total={totalWallets} activeCount={activeWallets} />
           <WalletsOverviewSection wallets={wallets} isLoading={walletsLoading} />
+        </div>
+        <div className="space-y-6">
+          <TotalAgentsCard total={totalAgents} activeCount={activeAgents} />
+          <AgentsOverviewSection agents={agents} isLoading={agentsLoading} />
         </div>
       </div>
 

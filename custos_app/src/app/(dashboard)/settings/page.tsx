@@ -45,7 +45,7 @@ export default function SettingsPage() {
           <p className="text-body-sm">
             Signed in with{" "}
             <Badge variant="secondary">Email</Badge>{" "}
-            <span className="text-muted-foreground">(magic link)</span>
+            <span className="text-muted-foreground">(sign-in link)</span>
           </p>
         </CardContent>
       </Card>

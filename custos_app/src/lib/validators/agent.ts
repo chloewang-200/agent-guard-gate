@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const agentFormSchema = z.object({
   name: z.string().min(1, "Name is required").max(120),
@@ -8,7 +8,6 @@ export const agentFormSchema = z.object({
   role: z.enum(["viewer", "requester", "approver", "admin"]),
   capabilities: z.array(z.string()),
   status: z.enum(["active", "disabled", "paused", "needs_setup"]),
-  callbackUrl: z.string().url().optional().or(z.literal("")),
 });
 
 export type AgentFormValues = z.infer<typeof agentFormSchema>;

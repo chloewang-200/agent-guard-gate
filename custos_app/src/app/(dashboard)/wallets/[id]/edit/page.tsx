@@ -48,6 +48,8 @@ export default function WalletEditPage() {
           dailyLimit: wallet.policy?.limits?.daily,
           perTransactionLimit: wallet.policy?.limits?.perTransaction,
           approvalMode: wallet.policy?.approvalMode ?? "review",
+          allowedCategories: wallet.policy?.allowedCategories ?? [],
+          allowedVendors: wallet.policy?.allowedVendors?.join(", ") ?? "",
           status: wallet.status,
         }}
       />

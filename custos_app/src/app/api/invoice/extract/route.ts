@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
-import type { InvoiceExtractionResult } from "@/lib/types";
 import { isInvoiceFeatureEnabled } from "@/lib/features";
 import {
   experimentalFeatureDisabledResponse,
   requireSession,
   toRouteErrorResponse,
 } from "@/lib/server-auth";
+import { readInvoiceUpload } from "@/lib/server/invoice-upload-store";
+import { runInvoiceExtractionPipeline } from "@/lib/server/invoice-extract";
+
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
@@ -15,19 +18,21 @@ export async function POST(request: Request) {
     await requireSession();
     const body = await request.json();
     const fileId = body?.fileId as string | undefined;
-    if (!fileId) {
+    if (!fileId?.trim()) {
       return NextResponse.json({ message: "fileId required" }, { status: 400 });
     }
-    // TODO: Call OCR/extraction service; return typed result
-    const result: InvoiceExtractionResult = {
-      vendor: "Acme Corp",
-      invoiceNumber: "INV-2024-001",
-      amount: 1250.0,
-      dueDate: "2024-04-15",
-      memo: "Q1 services",
-      confidence: 0.92,
-      sourceFileId: fileId,
-    };
+
+    const stored = await readInvoiceUpload(fileId.trim());
+    if (!stored) {
+      return NextResponse.json({ message: "Upload not found — upload again." }, { status: 404 });
+    }
+
+    const result = await runInvoiceExtractionPipeline({
+      fileId: fileId.trim(),
+      buf: stored.buf,
+      mimeType: stored.mimeType,
+      originalName: stored.originalName,
+    });
     return NextResponse.json(result);
   } catch (e) {
     return toRouteErrorResponse(e, "Extract failed");

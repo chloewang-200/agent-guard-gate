@@ -1,17 +1,30 @@
+import { CTASection } from "@/components/landing/CTASection";
+import { ContactSection } from "@/components/landing/ContactSection";
+import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { Sections } from "@/components/landing/Sections";
+import { IntroSection } from "@/components/landing/IntroSection";
+import { ProblemSection } from "@/components/landing/ProblemSection";
+import { ProductSection } from "@/components/landing/ProductSection";
 
 type LandingPageProps = {
   tryNowHref: string;
 };
 
+/** Marketing home — matches Vite `src/pages/Index.tsx` layout (colorful Custos landing). */
 export function LandingPage({ tryNowHref }: LandingPageProps) {
   return (
-    <main className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-background">
       <Header tryNowHref={tryNowHref} />
-      <HeroSection tryNowHref={tryNowHref} />
-      <Sections />
-    </main>
+      <main>
+        <HeroSection />
+        <IntroSection />
+        <ProductSection />
+        <ProblemSection />
+        <ContactSection />
+        <CTASection />
+      </main>
+      <Footer />
+    </div>
   );
 }

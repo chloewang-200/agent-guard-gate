@@ -39,7 +39,24 @@ export interface RequestTransactionBody {
   vendor?: string;
   category?: string;
   memo?: string;
-  evidence?: { type: string; [k: string]: unknown }[];
+  policyResult?: Transaction["policyResult"];
+  evidence?: Transaction["evidence"];
+  purpose?: string;
+  context?: Record<string, unknown>;
+  policyEvaluation?: Transaction["policyEvaluation"];
+  auditEvents?: Transaction["auditEvents"];
+  agentDecision?: Transaction["agentDecision"];
+  citedRules?: Transaction["citedRules"];
+  riskScore?: number;
+  riskFlags?: string[];
+  matchedPayee?: Transaction["matchedPayee"];
+  railType?: string;
+  sourceKind?: string;
+  payoutStatus?: string;
+  payoutProvider?: string;
+  payoutExternalId?: string;
+  payoutError?: string;
+  payoutAttemptedAt?: string;
 }
 
 export async function requestTransaction(body: RequestTransactionBody): Promise<Transaction> {

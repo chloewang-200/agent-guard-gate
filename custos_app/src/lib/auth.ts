@@ -90,7 +90,7 @@ if (providers.length === 0) {
     );
   } else {
     throw new Error(
-      "No auth provider configured. Set Email (magic link) env vars: SMTP server fields, EMAIL_FROM, AWS_REGION, and NEXTAUTH_DYNAMODB_TABLE.",
+      "No auth provider configured. Set Email sign-in env vars: SMTP server fields, EMAIL_FROM, AWS_REGION, and NEXTAUTH_DYNAMODB_TABLE.",
     );
   }
 }

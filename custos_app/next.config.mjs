@@ -1,3 +1,8 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -22,6 +27,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // Avoid tracing upward into parent folders that contain unrelated package-lock.json files.
+  outputFileTracingRoot: path.join(__dirname, ".."),
   async headers() {
     return [
       {

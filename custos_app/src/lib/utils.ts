@@ -24,3 +24,11 @@ export function formatDateTime(date: string | Date): string {
     timeStyle: "short",
   }).format(typeof date === "string" ? new Date(date) : date);
 }
+
+/** Trim long strings for dense tables; preserves empty as "—". */
+export function truncateEllipsis(value: string | null | undefined, max = 72): string {
+  const s = value?.trim();
+  if (!s) return "—";
+  if (s.length <= max) return s;
+  return `${s.slice(0, Math.max(0, max - 1))}…`;
+}

@@ -5,6 +5,9 @@ import {
   requireSession,
   toRouteErrorResponse,
 } from "@/lib/server-auth";
+import { saveInvoiceUpload } from "@/lib/server/invoice-upload-store";
+
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
@@ -17,10 +20,13 @@ export async function POST(request: Request) {
     if (!file) {
       return NextResponse.json({ message: "No file" }, { status: 400 });
     }
-    // TODO: Store file in blob/store and return ID
-    const fileId = `inv_${Date.now()}_${file.name.replace(/\s/g, "_")}`;
-    return NextResponse.json({ fileId, url: undefined });
+    const { id } = await saveInvoiceUpload(file);
+    return NextResponse.json({ fileId: id, url: undefined });
   } catch (e) {
+    const msg = e instanceof Error ? e.message : "Upload failed";
+    if (msg.includes("too large")) {
+      return NextResponse.json({ message: msg }, { status: 413 });
+    }
     return toRouteErrorResponse(e, "Upload failed");
   }
 }

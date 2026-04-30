@@ -21,6 +21,14 @@ export const AGENT_TEMPLATE_TYPES = [
   { value: "custom", label: "Custom Agent" },
 ] as const;
 
+/** Capability ids stored on agents; labels shown in UI and policy tooling. */
+export const AGENT_CAPABILITY_OPTIONS = [
+  { id: "submit_payment_requests", name: "Submit payment requests" },
+  { id: "request_vendor_changes", name: "Request vendor changes" },
+  { id: "view_balances", name: "View balances" },
+  { id: "approve_under_threshold", name: "Approve under threshold" },
+] as const;
+
 export const WALLET_STATUSES = [
   { value: "active", label: "Active" },
   { value: "paused", label: "Paused" },

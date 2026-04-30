@@ -114,14 +114,14 @@ export function AnimatedDashboard() {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-8 lg:gap-12 max-w-full mx-auto">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 lg:gap-12 max-w-full mx-auto">
       {/* Transactions Column */}
-      <div className="rounded-lg border border-slate-900 bg-white p-3 sm:p-5 shadow-[2px_2px_0_0_rgba(0,0,0,1)] min-w-0 sm:min-w-[200px]">
-        <div className="flex items-center gap-2 mb-2 sm:mb-4">
-          <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
-          <h3 className="text-sm sm:text-base font-bold text-slate-900">Transactions</h3>
+      <div className="rounded-lg border border-slate-900 bg-white p-5 shadow-[2px_2px_0_0_rgba(0,0,0,1)] min-w-[200px]">
+        <div className="flex items-center gap-2 mb-4">
+          <ArrowRight className="h-5 w-5 flex-shrink-0 text-slate-900" />
+          <h3 className="text-base font-bold text-slate-900">Transactions</h3>
         </div>
-        <div className={`space-y-2 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
+        <div className={`space-y-3 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
           <AnimatePresence>
             {(isMobile ? transactions.slice(0, 1) : transactions).map((txn) => (
               <motion.div
@@ -134,51 +134,27 @@ export function AnimatedDashboard() {
                 }
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="rounded-lg border border-slate-900 bg-slate-50 p-2.5 sm:p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-shadow relative"
+                      className="rounded-lg border border-slate-900 bg-slate-50 p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-shadow relative"
               >
-                {isMobile ? (
-                  <div className="relative">
-                    <div className="pr-16">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-semibold text-xs text-slate-900 leading-tight">{txn.vendor}</p>
-                        <span className="text-[11px] text-slate-600 leading-tight">{txn.amount}</span>
-                      </div>
-                      <p className="mt-0.5 text-[11px] text-slate-600 leading-tight">{txn.agent}</p>
-                    </div>
-                    <div className="absolute right-0 -top-2.5">
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.2, type: "spring" }}
-                        className={`px-1.5 py-0.5 rounded-full text-[9px] font-medium border whitespace-nowrap ${getStatusColor(txn.status)}`}
-                      >
-                        {txn.status}
-                      </motion.span>
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                  className={`absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-medium border flex-shrink-0 whitespace-nowrap ${getStatusColor(txn.status)}`}
+                >
+                  {txn.status}
+                </motion.span>
+                <div className="mb-2 pr-16">
+                  <div className="mb-1.5">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-slate-900 leading-tight">{txn.vendor}</p>
+                      <p className="text-xs text-slate-600 leading-tight mt-0.5">{txn.agent}</p>
                     </div>
                   </div>
-                ) : (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, type: "spring" }}
-                    className={`absolute top-3 right-3 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium border flex-shrink-0 whitespace-nowrap ${getStatusColor(txn.status)}`}
-                  >
-                    {txn.status}
-                  </motion.span>
-                )}
-                {!isMobile && (
-                  <div className="mb-2 pr-16">
-                    <div className="mb-1.5">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-xs sm:text-sm text-slate-900 leading-tight">{txn.vendor}</p>
-                        <p className="text-[11px] sm:text-xs text-slate-600 leading-tight mt-0.5">{txn.agent}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-2 gap-2">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900">{txn.amount}</span>
-                    </div>
+                  <div className="flex items-center justify-between mt-2 gap-2">
+                    <span className="text-sm font-bold text-slate-900">{txn.amount}</span>
                   </div>
-                )}
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -186,12 +162,12 @@ export function AnimatedDashboard() {
       </div>
 
             {/* Policies Column */}
-            <div className="rounded-lg border border-slate-900 bg-white p-3 sm:p-5 shadow-[2px_2px_0_0_rgba(0,0,0,1)] min-w-0 sm:min-w-[200px]">
-        <div className="flex items-center gap-2 mb-2 sm:mb-4">
-          <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
-          <h3 className="text-sm sm:text-base font-bold text-slate-900">Policies Applied</h3>
+            <div className="rounded-lg border border-slate-900 bg-white p-5 shadow-[2px_2px_0_0_rgba(0,0,0,1)] min-w-[200px]">
+        <div className="flex items-center gap-2 mb-4">
+          <Shield className="h-5 w-5 flex-shrink-0 text-slate-900" />
+          <h3 className="text-base font-bold text-slate-900">Policies Applied</h3>
         </div>
-        <div className={`space-y-2 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
+        <div className={`space-y-3 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
           <AnimatePresence>
             {(isMobile ? policyChecks.slice(0, 1) : policyChecks).map((policy) => (
               <motion.div
@@ -204,7 +180,7 @@ export function AnimatedDashboard() {
                 }
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="rounded-lg border border-slate-900 bg-slate-50 p-2.5 sm:p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-shadow"
+                      className="rounded-lg border border-slate-900 bg-slate-50 p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-shadow"
               >
                 <div className="flex items-center gap-3">
                   <motion.div
@@ -225,14 +201,14 @@ export function AnimatedDashboard() {
                       />
                     ) : (
                       <CheckCircle2
-                        className="h-4 w-4 sm:h-5 sm:w-5 text-red-600"
+                        className="h-5 w-5 text-red-600"
                         strokeWidth={2}
                       />
                     )}
                   </motion.div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-xs sm:text-sm text-slate-900 leading-tight">{policy.policy}</p>
-                    <p className="text-[11px] sm:text-xs text-slate-600 capitalize leading-tight mt-0.5">{policy.result}</p>
+                    <p className="font-semibold text-sm text-slate-900 leading-tight">{policy.policy}</p>
+                    <p className="text-xs text-slate-600 capitalize leading-tight mt-0.5">{policy.result}</p>
                   </div>
                 </div>
               </motion.div>
@@ -242,12 +218,12 @@ export function AnimatedDashboard() {
       </div>
 
             {/* Audit Records Column */}
-            <div className="rounded-lg border border-slate-900 bg-white p-3 sm:p-5 shadow-[2px_2px_0_0_rgba(0,0,0,1)] min-w-0 sm:min-w-[200px]">
-        <div className="flex items-center gap-2 mb-2 sm:mb-4">
-          <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
-          <h3 className="text-sm sm:text-base font-bold text-slate-900">Audit Records</h3>
+            <div className="rounded-lg border border-slate-900 bg-white p-5 shadow-[2px_2px_0_0_rgba(0,0,0,1)] min-w-[200px]">
+        <div className="flex items-center gap-2 mb-4">
+          <FileText className="h-5 w-5 flex-shrink-0 text-slate-900" />
+          <h3 className="text-base font-bold text-slate-900">Audit Records</h3>
         </div>
-        <div className={`space-y-2 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
+        <div className={`space-y-3 ${isMobile ? 'min-h-0' : 'min-h-[280px]'}`}>
           <AnimatePresence>
             {(isMobile ? auditRecords.slice(0, 1) : auditRecords).map((audit) => (
               <motion.div
@@ -260,7 +236,7 @@ export function AnimatedDashboard() {
                 }
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="rounded-lg border border-slate-900 bg-slate-50 p-2.5 sm:p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-shadow"
+                      className="rounded-lg border border-slate-900 bg-slate-50 p-4 shadow-[1px_1px_0_0_rgba(0,0,0,1)] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-shadow"
               >
                 <div className="flex items-start gap-3">
                   <motion.div
@@ -269,11 +245,11 @@ export function AnimatedDashboard() {
                     transition={{ delay: 0.2 }}
                     className="flex-shrink-0"
                   >
-                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 mt-0.5" />
+                    <FileText className="mt-0.5 h-4 w-4 text-slate-900" />
                   </motion.div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-xs sm:text-sm text-slate-900 leading-tight">{audit.action}</p>
-                    <p className="text-[11px] sm:text-xs text-slate-600 leading-tight mt-0.5">{audit.agent}</p>
+                    <p className="font-semibold text-sm text-slate-900 leading-tight">{audit.action}</p>
+                    <p className="text-xs text-slate-600 leading-tight mt-0.5">{audit.agent}</p>
                   </div>
                 </div>
               </motion.div>
@@ -284,3 +260,4 @@ export function AnimatedDashboard() {
     </div>
   );
 }
+

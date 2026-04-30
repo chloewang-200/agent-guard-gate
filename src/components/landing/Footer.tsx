@@ -14,11 +14,14 @@ export function Footer() {
           <a href="#solution" className="text-sm text-slate-600 transition-colors hover:text-slate-900">
             Solution
           </a>
-          <a href="#how-it-works" className="text-sm text-slate-600 transition-colors hover:text-slate-900">
-            How It Works
+          <a href="#prototype" className="text-sm text-slate-600 transition-colors hover:text-slate-900">
+            In Action
           </a>
           <a href="#use-cases" className="text-sm text-slate-600 transition-colors hover:text-slate-900">
             Use Cases
+          </a>
+          <a href="#how-it-works" className="text-sm text-slate-600 transition-colors hover:text-slate-900">
+            How It Works
           </a>
         </nav>
 

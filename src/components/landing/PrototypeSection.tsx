@@ -57,10 +57,10 @@ export function PrototypeSection() {
           className="relative mx-auto max-w-4xl"
         >
           <p className="text-sm font-medium uppercase tracking-wide text-slate-500">Product In Action</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
             How Custos controls agent spending in real time
           </h2>
-          <p className="mt-4 text-[15px] text-slate-600 leading-snug sm:text-lg sm:leading-relaxed">
+          <p className="mt-4 text-lg text-slate-600">
             Monitor spend across agents, route approvals automatically, and investigate risk with full context.
           </p>
         </motion.div>

@@ -10,21 +10,34 @@ import {
   ClipboardList,
   Puzzle,
   Settings,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isInvoiceFeatureEnabledClient } from "@/lib/features";
 
-const navItems = [
+const coreNavItems = [
   { href: "/overview", label: "Overview", icon: LayoutDashboard },
   { href: "/wallets", label: "Wallets", icon: Wallet },
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/transactions", label: "Transactions", icon: Receipt },
   { href: "/review-queue", label: "Review Queue", icon: ClipboardList },
   { href: "/templates", label: "Agent Templates", icon: Puzzle },
-  { href: "/settings", label: "Settings", icon: Settings },
 ];
+
+function navItemActive(pathname: string, href: string): boolean {
+  if (pathname === href) return true;
+  if (href === "/overview" || href === "/templates") return false;
+  return pathname.startsWith(`${href}/`);
+}
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const showInvoice = isInvoiceFeatureEnabledClient();
+  const navItems = [
+    ...coreNavItems,
+    ...(showInvoice ? [{ href: "/templates/invoice" as const, label: "Invoice Agent", icon: FileText }] : []),
+    { href: "/settings", label: "Settings", icon: Settings },
+  ];
   return (
     <aside className="flex w-56 flex-col border-r border-sidebar-border bg-sidebar">
       <div className="flex h-14 items-center border-b border-sidebar-border px-4">
@@ -34,9 +47,7 @@ export function SidebarNav() {
       </div>
       <nav className="flex-1 space-y-0.5 p-2">
         {navItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== "/overview" && pathname.startsWith(item.href));
+          const isActive = navItemActive(pathname, item.href);
           const Icon = item.icon;
           return (
             <Link

@@ -8,6 +8,8 @@ export const DEMO_TABLES = {
   agents: process.env.CUSTOS_AGENTS_TABLE ?? "custos-agents",
   transactions: process.env.CUSTOS_TRANSACTIONS_TABLE ?? "custos-transactions",
   vendors: process.env.CUSTOS_VENDORS_TABLE ?? "custos-vendors",
+  /** Idempotency for Stripe wallet top-ups (PaymentIntent id). */
+  stripeCredits: process.env.CUSTOS_STRIPE_CREDITS_TABLE ?? "custos-stripe-credits",
 } as const;
 
 const client = new DynamoDB({

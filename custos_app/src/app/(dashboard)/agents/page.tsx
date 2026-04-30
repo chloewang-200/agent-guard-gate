@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Plus, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,11 +27,21 @@ import { EmptyState } from "@/components/empty-state/EmptyState";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AgentFormDialog } from "@/components/agents/AgentFormDialog";
+import { isInvoiceFeatureEnabledClient } from "@/lib/features";
 
 export default function AgentsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("create") !== "1") return;
+    setFormOpen(true);
+    router.replace(pathname);
+  }, [searchParams, pathname, router]);
+
   const { data, isLoading } = useQuery({
     queryKey: ["agents", { page: 1, pageSize: 50 }],
     queryFn: () => getAgents({ page: 1, pageSize: 50 }),
@@ -129,6 +139,13 @@ export default function AgentsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => router.push(`/agents/${agent.id}`)}>View</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => router.push(`/agents/${agent.id}/edit`)}>Edit</DropdownMenuItem>
+                          {agent.templateType === "invoice" && isInvoiceFeatureEnabledClient() ? (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/templates/invoice?agentId=${encodeURIComponent(agent.id)}`}>
+                                Invoice Agent
+                              </Link>
+                            </DropdownMenuItem>
+                          ) : null}
                           <DropdownMenuItem asChild>
                             <Link href={`/transactions?agentId=${agent.id}`}>View transactions</Link>
                           </DropdownMenuItem>

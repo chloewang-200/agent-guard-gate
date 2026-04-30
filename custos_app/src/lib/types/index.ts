@@ -85,18 +85,51 @@ export type TransactionStatus =
 
 export type PolicyResult =
   | "within_policy"
+  | "cleared_by_human_review"
   | "over_limit"
   | "vendor_restricted"
   | "missing_proof"
   | "needs_manual_approval"
+  | "payee_not_matched"
+  | "payout_rail_not_allowed"
   | "category_not_allowed"
   | "agent_capability_not_allowed";
+
+export type TransactionSourceKind =
+  | "api"
+  | "invoice_upload"
+  | "invoice_chat"
+  | "event_production_plan"
+  | "manual";
+
+export interface MatchedPayeeSummary {
+  id: string;
+  displayName: string;
+  defaultRail: string;
+  paymentInstructions?: string;
+  stripeConnectAccountId?: string;
+}
+
+export interface CitedRule {
+  id: string;
+  title: string;
+  source?: string;
+  excerpt?: string;
+}
+
+export interface AgentDecisionRecord {
+  summary: string;
+  reasoning?: string;
+  modelConfidence?: number;
+}
 
 export interface Evidence {
   id: string;
   type: string;
   url?: string;
   filename?: string;
+  /** Invoice upload id served by `/api/invoice/file/[fileId]` when present */
+  fileId?: string;
   extractedFields?: Record<string, unknown>;
   confidence?: number;
   uploadedAt: string;
@@ -115,6 +148,15 @@ export interface Transaction {
   amount: number;
   currency: string;
   memo?: string;
+  /** Agent-declared reason for the spend */
+  purpose?: string;
+  /** Structured metadata (e.g. extraction payload) */
+  context?: Record<string, unknown>;
+  riskScore?: number;
+  riskFlags?: string[];
+  citedRules?: CitedRule[];
+  agentDecision?: AgentDecisionRecord;
+  matchedPayee?: MatchedPayeeSummary;
   status: TransactionStatus;
   policyResult?: PolicyResult;
   reviewState?: "pending" | "approved" | "rejected";
@@ -122,6 +164,13 @@ export interface Transaction {
   policyEvaluation?: PolicyEvaluationItem[];
   auditEvents?: AuditEvent[];
   settledAt?: string;
+  railType?: string;
+  sourceKind?: TransactionSourceKind | string;
+  payoutStatus?: string;
+  payoutProvider?: string;
+  payoutExternalId?: string;
+  payoutError?: string;
+  payoutAttemptedAt?: string;
 }
 
 export interface PolicyEvaluationItem {
@@ -136,6 +185,8 @@ export interface AuditEvent {
   action: string;
   actor?: string;
   detail?: string;
+  /** request | agent_context | evidence | policy | human | … */
+  type?: string;
 }
 
 export interface ReviewItem {
@@ -154,6 +205,8 @@ export interface InvoiceExtractionResult {
   memo?: string;
   confidence?: number;
   sourceFileId?: string;
+  /** Payment rail hint from extraction heuristics or invoice agent */
+  railType?: string;
   rawFields?: Record<string, unknown>;
 }
 

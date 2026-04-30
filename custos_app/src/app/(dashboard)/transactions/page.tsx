@@ -1,8 +1,8 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,24 +28,73 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getTransactions } from "@/lib/api/transactions";
+import { effectivePolicyDisplay, payoutStatusLabel } from "@/lib/transactionDisplay";
 import { TransactionStatusBadge } from "@/components/status/StatusBadge";
 import { PolicyResultBadge } from "@/components/status/StatusBadge";
 import { EmptyState } from "@/components/empty-state/EmptyState";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { formatCurrency, formatDateTime, truncateEllipsis } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionDetailSheet } from "@/components/transactions/TransactionDetailSheet";
+import type { Transaction } from "@/lib/types";
 
-export default function TransactionsPage() {
+function humanizeKind(value?: string | null): string {
+  if (!value?.trim()) return "—";
+  return value.replace(/_/g, " ");
+}
+
+function decisionTooltip(tx: Transaction): string | undefined {
+  const s = tx.agentDecision?.summary?.trim();
+  const r = tx.agentDecision?.reasoning?.trim();
+  if (!s && !r) return undefined;
+  return [s, r].filter(Boolean).join("\n\n");
+}
+
+function TransactionsPageFallback() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-9 w-48" />
+        <Skeleton className="mt-2 h-4 w-96 max-w-full" />
+      </div>
+      <div className="flex gap-2">
+        <Skeleton className="h-10 max-w-sm flex-1" />
+        <Skeleton className="h-10 w-[180px]" />
+      </div>
+      <Skeleton className="h-64 w-full rounded-lg" />
+    </div>
+  );
+}
+
+function TransactionsPageContent() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "all");
+  const [statusFilter, setStatusFilter] = useState(
+    () => searchParams.get("status") ?? "all"
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const txFromUrl = searchParams.get("tx");
+  useEffect(() => {
+    if (txFromUrl) setSelectedId(txFromUrl);
+  }, [txFromUrl]);
+
+  function handleDetailOpenChange(open: boolean) {
+    if (open) return;
+    setSelectedId(null);
+    if (!searchParams.get("tx")) return;
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.delete("tx");
+    const q = sp.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  }
+
+  const { data, isLoading, error } = useQuery({
     queryKey: [
       "transactions",
       { page: 1, pageSize: 50, status: statusFilter === "all" ? undefined : statusFilter },
     ],
+    retry: false,
     queryFn: () =>
       getTransactions({
         page: 1,
@@ -66,7 +115,7 @@ export default function TransactionsPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Input placeholder="Search..." className="max-w-sm" />
+        <Input placeholder="Search…" className="max-w-sm" />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Status" />
@@ -84,9 +133,13 @@ export default function TransactionsPage() {
 
       <div className="rounded-lg border border-border bg-card">
         {isLoading ? (
-          <div className="p-6 space-y-3">
+          <div className="space-y-3 p-6">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
+          </div>
+        ) : error ? (
+          <div className="p-6 text-sm text-destructive">
+            {error instanceof Error ? error.message : "Could not load transactions."}
           </div>
         ) : transactions.length === 0 ? (
           <EmptyState
@@ -94,70 +147,136 @@ export default function TransactionsPage() {
             description="Agent-submitted transactions will appear here."
           />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Agent</TableHead>
-                <TableHead>Wallet</TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Policy</TableHead>
-                <TableHead className="w-10" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((tx) => (
-                <TableRow
-                  key={tx.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => setSelectedId(tx.id)}
-                >
-                  <TableCell className="font-mono text-caption">{tx.id.slice(0, 12)}…</TableCell>
-                  <TableCell className="text-body-sm text-muted-foreground">
-                    {formatDateTime(tx.requestedAt)}
-                  </TableCell>
-                  <TableCell>{tx.agentName}</TableCell>
-                  <TableCell>{tx.walletName}</TableCell>
-                  <TableCell>{tx.vendor ?? tx.recipient ?? "—"}</TableCell>
-                  <TableCell className="text-right tabular-nums font-medium">
-                    {formatCurrency(tx.amount, tx.currency)}
-                  </TableCell>
-                  <TableCell>
-                    <TransactionStatusBadge status={tx.status} />
-                  </TableCell>
-                  <TableCell>
-                    {tx.policyResult ? (
-                      <PolicyResultBadge result={tx.policyResult} />
-                    ) : (
-                      "—"
-                    )}
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setSelectedId(tx.id)}>
-                          View details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => router.push(`/review-queue?tx=${tx.id}`)}
-                        >
-                          Open in review queue
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Agent</TableHead>
+                  <TableHead>Wallet</TableHead>
+                  <TableHead className="hidden md:table-cell">Category</TableHead>
+                  <TableHead>Vendor</TableHead>
+                  <TableHead className="hidden lg:table-cell">Source</TableHead>
+                  <TableHead className="hidden lg:table-cell">Rail</TableHead>
+                  <TableHead className="hidden xl:table-cell max-w-[13rem]">
+                    Agent decision
+                  </TableHead>
+                  <TableHead className="hidden xl:table-cell text-right">Conf.</TableHead>
+                  <TableHead className="hidden lg:table-cell text-right">Risk</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Policy</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx) => {
+                  const payLbl = payoutStatusLabel(tx);
+                  const policyDisp = effectivePolicyDisplay(tx);
+                  const decTip = decisionTooltip(tx);
+                  const rawDecision =
+                    tx.agentDecision?.summary?.trim() ||
+                    tx.agentDecision?.reasoning?.trim()?.split("\n")[0];
+                  const decisionLine = truncateEllipsis(rawDecision, 64);
+                  const confPct =
+                    tx.agentDecision?.modelConfidence != null
+                      ? `${Math.round(tx.agentDecision.modelConfidence * 100)}%`
+                      : "—";
+
+                  return (
+                    <TableRow
+                      key={tx.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setSelectedId(tx.id)}
+                    >
+                      <TableCell className="font-mono text-caption">
+                        {tx.id.slice(0, 12)}…
+                      </TableCell>
+                      <TableCell className="text-body-sm text-muted-foreground whitespace-nowrap">
+                        {formatDateTime(tx.requestedAt)}
+                      </TableCell>
+                      <TableCell>{tx.agentName}</TableCell>
+                      <TableCell>{tx.walletName}</TableCell>
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
+                        {tx.category ?? "—"}
+                      </TableCell>
+                      <TableCell>{tx.vendor ?? tx.recipient ?? "—"}</TableCell>
+                      <TableCell className="hidden lg:table-cell capitalize text-muted-foreground">
+                        {humanizeKind(tx.sourceKind)}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell capitalize text-muted-foreground">
+                        {humanizeKind(tx.railType)}
+                      </TableCell>
+                      <TableCell
+                        className="hidden xl:table-cell max-w-[13rem] text-body-sm text-muted-foreground"
+                        title={decTip}
+                      >
+                        {decisionLine}
+                      </TableCell>
+                      <TableCell className="hidden xl:table-cell text-right tabular-nums text-caption text-muted-foreground">
+                        {confPct}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell text-right tabular-nums text-caption">
+                        {tx.riskScore != null ? tx.riskScore : "—"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums font-medium">
+                        {formatCurrency(tx.amount, tx.currency)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-end gap-0.5 sm:items-start">
+                          <TransactionStatusBadge status={tx.status} />
+                          {payLbl ? (
+                            <span className="max-w-[14rem] text-right text-caption text-muted-foreground sm:text-left">
+                              {payLbl}
+                            </span>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {!policyDisp ? (
+                          "—"
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            <PolicyResultBadge result={policyDisp.result} />
+                            {policyDisp.subtitle ? (
+                              <span className="text-caption text-muted-foreground">
+                                {policyDisp.subtitle}
+                              </span>
+                            ) : null}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSelectedId(tx.id)}>
+                              View details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/transactions/${tx.id}`)}
+                            >
+                              Open full page
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/review-queue?tx=${tx.id}`)}
+                            >
+                              Open in review queue
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
 
@@ -165,9 +284,17 @@ export default function TransactionsPage() {
         <TransactionDetailSheet
           transactionId={selectedId}
           open={!!selectedId}
-          onOpenChange={(open) => !open && setSelectedId(null)}
+          onOpenChange={handleDetailOpenChange}
         />
       )}
     </div>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={<TransactionsPageFallback />}>
+      <TransactionsPageContent />
+    </Suspense>
   );
 }

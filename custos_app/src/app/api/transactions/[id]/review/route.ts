@@ -22,7 +22,11 @@ export async function PATCH(
     const body = await request.json();
     const tx: Transaction | null = await reviewTransaction(
       id,
-      body?.decision === "approve" ? "approve" : "reject"
+      body?.decision === "approve" ? "approve" : "reject",
+      {
+        note: typeof body?.note === "string" ? body.note : undefined,
+        actor: session.user?.email ?? undefined,
+      }
     );
     if (!tx) return NextResponse.json({ message: "Transaction not found" }, { status: 404 });
     return NextResponse.json(tx);
