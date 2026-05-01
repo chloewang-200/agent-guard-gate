@@ -1,6 +1,64 @@
 import { NextResponse } from "next/server";
+import { isWaitlistAdminRequest } from "@/lib/waitlist-admin-auth";
 
-/** Minimal waitlist endpoint so marketing CTAs succeed without extra infra. Extend with Supabase / webhook later. */
+const endpoint = process.env.WAITLIST_ENDPOINT;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseTable = process.env.SUPABASE_WAITLIST_TABLE || "waitlist";
+
+const hasSupabase = Boolean(supabaseUrl && supabaseKey);
+
+/** Admin-only: list signups (Supabase or upstream GET). */
+export async function GET() {
+  const authed = await isWaitlistAdminRequest();
+  if (!authed) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!endpoint && !hasSupabase) {
+    return NextResponse.json({ ok: false, error: "Missing WAITLIST_ENDPOINT or Supabase." }, { status: 500 });
+  }
+
+  try {
+    if (hasSupabase) {
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/${supabaseTable}?select=email,created_at&order=created_at.desc`,
+        {
+          headers: {
+            apikey: supabaseKey as string,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+        },
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        return NextResponse.json(
+          { ok: false, error: "Supabase waitlist failed.", details: data },
+          { status: response.status },
+        );
+      }
+      return NextResponse.json(data);
+    }
+
+    const response = await fetch(endpoint as string);
+    const text = await response.text();
+    if (!response.ok) {
+      return NextResponse.json(
+        { ok: false, error: "Upstream waitlist failed.", details: text },
+        { status: response.status },
+      );
+    }
+    try {
+      return NextResponse.json(JSON.parse(text));
+    } catch {
+      return NextResponse.json({ ok: true, raw: text });
+    }
+  } catch (e) {
+    console.error("Waitlist GET failed", e);
+    return NextResponse.json({ ok: false, error: "Failed to fetch waitlist." }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   let email: string | null = null;
   const ct = request.headers.get("content-type") ?? "";
@@ -21,5 +79,55 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Missing email" }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true });
+  const trimmed = email.trim();
+
+  if (!endpoint && !hasSupabase) {
+    return NextResponse.json({ ok: true });
+  }
+
+  try {
+    if (hasSupabase) {
+      const response = await fetch(`${supabaseUrl}/rest/v1/${supabaseTable}`, {
+        method: "POST",
+        headers: {
+          apikey: supabaseKey as string,
+          Authorization: `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ email: trimmed }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        return NextResponse.json(
+          { ok: false, error: "Supabase waitlist failed.", details: data },
+          { status: response.status },
+        );
+      }
+
+      return NextResponse.json({ ok: true, data });
+    }
+
+    const response = await fetch(endpoint as string, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      },
+      body: new URLSearchParams({ email: trimmed }),
+    });
+
+    if (!response.ok) {
+      const details = await response.text();
+      return NextResponse.json(
+        { ok: false, error: "Upstream waitlist failed.", details },
+        { status: 502 },
+      );
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("Waitlist POST failed", e);
+    return NextResponse.json({ ok: false, error: "Server error." }, { status: 500 });
+  }
 }
