@@ -106,7 +106,7 @@ export function InvoiceAgentClient() {
               Upload invoice
             </CardTitle>
             <CardDescription>
-              Image or PDF. Extraction is performed via API (OCR).
+              Images accepted (PDFs coming soon).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

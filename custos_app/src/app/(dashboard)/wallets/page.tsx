@@ -98,15 +98,15 @@ export default function WalletsPage() {
                   onClick={() => router.push(`/wallets/${wallet.id}`)}
                 >
                   <TableCell className="font-medium">{wallet.name}</TableCell>
-                  <TableCell className="text-right tabular-nums">
+                  <TableCell className="tabular-nums">
                     {formatCurrency(wallet.balance, wallet.currency)}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">
+                  <TableCell className="tabular-nums">
                     {wallet.policy?.limits?.daily != null
                       ? formatCurrency(wallet.policy.limits.daily, wallet.currency)
                       : "—"}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">
+                  <TableCell className="tabular-nums">
                     {wallet.policy?.limits?.perTransaction != null
                       ? formatCurrency(wallet.policy.limits.perTransaction, wallet.currency)
                       : "—"}

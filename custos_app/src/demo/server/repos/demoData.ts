@@ -15,6 +15,26 @@ import type {
 } from "@/lib/types";
 import { DEMO_TABLES, demoDynamo, newId, nowIso } from "@/demo/server/dynamo/client";
 
+type TransactionExtendedPayload = {
+  purpose?: Transaction["purpose"];
+  context?: Transaction["context"];
+  riskScore?: number;
+  riskFlags?: string[];
+  citedRules?: Transaction["citedRules"];
+  agentDecision?: Transaction["agentDecision"];
+  matchedPayee?: Transaction["matchedPayee"];
+  walletPolicy?: Transaction["walletPolicy"];
+  policyEvaluation?: Transaction["policyEvaluation"];
+  auditEvents?: Transaction["auditEvents"];
+  railType?: string;
+  sourceKind?: string;
+  payoutStatus?: string;
+  payoutProvider?: string;
+  payoutExternalId?: string;
+  payoutError?: string;
+  payoutAttemptedAt?: string;
+};
+
 type SessionLike = { user?: { email?: string | null } } | null;
 
 type UserItem = {
@@ -89,6 +109,162 @@ function parseJson<T>(value: unknown, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function normalizeEvidenceFromJson(evidenceJson: string | undefined, createdAt: string): Evidence[] {
+  const raw = parseJson(evidenceJson, [] as unknown[]);
+  if (!Array.isArray(raw)) return [];
+  return raw.map((e, i) => {
+    const o = e && typeof e === "object" ? (e as Record<string, unknown>) : {};
+    return {
+      id: typeof o.id === "string" ? o.id : `ev_${i}_${createdAt}`,
+      type: typeof o.type === "string" ? o.type : "attachment",
+      url: typeof o.url === "string" ? o.url : undefined,
+      filename: typeof o.filename === "string" ? o.filename : undefined,
+      fileId: typeof o.fileId === "string" ? o.fileId : undefined,
+      extractedFields:
+        o.extractedFields && typeof o.extractedFields === "object"
+          ? (o.extractedFields as Record<string, unknown>)
+          : undefined,
+      confidence: typeof o.confidence === "number" ? o.confidence : undefined,
+      uploadedAt: typeof o.uploadedAt === "string" ? o.uploadedAt : createdAt,
+    };
+  });
+}
+
+function normalizeEvidenceInput(evidence: Evidence[] | undefined, createdAt: string): Evidence[] {
+  if (!evidence?.length) return [];
+  return evidence.map((e, i) => ({
+    id: e.id ?? `ev_${i}_${createdAt}`,
+    type: e.type,
+    url: e.url,
+    filename: e.filename,
+    fileId: e.fileId,
+    extractedFields: e.extractedFields,
+    confidence: e.confidence,
+    uploadedAt: e.uploadedAt ?? createdAt,
+  }));
+}
+
+function formatMoney(amount: number, currency: string): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: (currency || "USD").toUpperCase(),
+  }).format(amount);
+}
+
+function utcDayKey(value: string): string {
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function policyFailureReason(tx: Pick<Transaction, "policyResult" | "policyEvaluation">): string | undefined {
+  const failedChecks = tx.policyEvaluation?.filter((item) => item.result === "fail") ?? [];
+  if (failedChecks.length > 0) {
+    return failedChecks.map((item) => item.check).join(" · ");
+  }
+  if (tx.policyResult === "over_limit") return "Over wallet limit";
+  return undefined;
+}
+
+async function evaluateWalletLimits(
+  workspaceId: string,
+  wallet: Wallet,
+  amount: number,
+  requestedAt: string
+): Promise<{
+  policyResult: Transaction["policyResult"];
+  status: TransactionStatus;
+  reviewState: TransactionItem["reviewState"];
+  policyEvaluation: Transaction["policyEvaluation"];
+}> {
+  const checks: NonNullable<Transaction["policyEvaluation"]> = [];
+  const amountCents = Math.round(amount * 100);
+  const todayKey = utcDayKey(requestedAt);
+  const walletTransactions = await listTransactions(workspaceId, { walletId: wallet.id });
+  const dailySpentCents = walletTransactions.reduce((total, tx) => {
+    if (tx.status === "blocked" || tx.status === "canceled") return total;
+    if (utcDayKey(tx.requestedAt) !== todayKey) return total;
+    return total + Math.round(tx.amount * 100);
+  }, 0);
+
+  const perTxLimit = wallet.policy?.limits?.perTransaction;
+  const dailyLimit = wallet.policy?.limits?.daily;
+  let overLimit = false;
+
+  if (perTxLimit != null) {
+    const limitCents = Math.round(perTxLimit * 100);
+    const passed = amountCents <= limitCents;
+    if (!passed) overLimit = true;
+    checks.push({
+      check: "Per-transaction limit",
+      result: passed ? "pass" : "fail",
+      detail: `${formatMoney(amount, wallet.currency)} ${passed ? "is within" : "exceeds"} the limit of ${formatMoney(perTxLimit, wallet.currency)}`,
+    });
+  }
+
+  if (dailyLimit != null) {
+    const limitCents = Math.round(dailyLimit * 100);
+    const totalCents = dailySpentCents + amountCents;
+    const passed = totalCents <= limitCents;
+    if (!passed) overLimit = true;
+    checks.push({
+      check: "Daily limit",
+      result: passed ? "pass" : "fail",
+      detail: `${formatMoney(dailySpentCents / 100, wallet.currency)} spent today + ${formatMoney(amount, wallet.currency)} request = ${formatMoney(totalCents / 100, wallet.currency)} against ${formatMoney(dailyLimit, wallet.currency)} limit`,
+    });
+  }
+
+  return {
+    policyResult: overLimit ? "over_limit" : "within_policy",
+    status: overLimit ? "blocked" : "pending_review",
+    reviewState: overLimit ? "rejected" : "pending",
+    policyEvaluation: checks.length > 0 ? checks : undefined,
+  };
+}
+
+function compactExtendedPayload(input: Partial<Transaction>): TransactionExtendedPayload {
+  const p: TransactionExtendedPayload = {};
+  if (input.purpose !== undefined) p.purpose = input.purpose;
+  if (input.context !== undefined) p.context = input.context;
+  if (input.riskScore !== undefined) p.riskScore = input.riskScore;
+  if (input.riskFlags !== undefined) p.riskFlags = input.riskFlags;
+  if (input.citedRules !== undefined) p.citedRules = input.citedRules;
+  if (input.agentDecision !== undefined) p.agentDecision = input.agentDecision;
+  if (input.matchedPayee !== undefined) p.matchedPayee = input.matchedPayee;
+  if (input.policyEvaluation !== undefined) p.policyEvaluation = input.policyEvaluation;
+  if (input.auditEvents !== undefined) p.auditEvents = input.auditEvents;
+  if (input.railType !== undefined) p.railType = input.railType;
+  if (input.sourceKind !== undefined) p.sourceKind = input.sourceKind;
+  if (input.payoutStatus !== undefined) p.payoutStatus = input.payoutStatus;
+  if (input.payoutProvider !== undefined) p.payoutProvider = input.payoutProvider;
+  if (input.payoutExternalId !== undefined) p.payoutExternalId = input.payoutExternalId;
+  if (input.payoutError !== undefined) p.payoutError = input.payoutError;
+  if (input.payoutAttemptedAt !== undefined) p.payoutAttemptedAt = input.payoutAttemptedAt;
+  return p;
+}
+
+function mergeTxWithExtended(tx: Transaction, ext: TransactionExtendedPayload | null): Transaction {
+  if (!ext || Object.keys(ext).length === 0) return tx;
+  return {
+    ...tx,
+    purpose: ext.purpose ?? tx.purpose,
+    context: ext.context ?? tx.context,
+    riskScore: ext.riskScore ?? tx.riskScore,
+    riskFlags: ext.riskFlags ?? tx.riskFlags,
+    citedRules: ext.citedRules ?? tx.citedRules,
+    agentDecision: ext.agentDecision ?? tx.agentDecision,
+    matchedPayee: ext.matchedPayee ?? tx.matchedPayee,
+    walletPolicy: ext.walletPolicy ?? tx.walletPolicy,
+    policyEvaluation: ext.policyEvaluation ?? tx.policyEvaluation,
+    auditEvents: ext.auditEvents ?? tx.auditEvents,
+    railType: ext.railType ?? tx.railType,
+    sourceKind: ext.sourceKind ?? tx.sourceKind,
+    payoutStatus: ext.payoutStatus ?? tx.payoutStatus,
+    payoutProvider: ext.payoutProvider ?? tx.payoutProvider,
+    payoutExternalId: ext.payoutExternalId ?? tx.payoutExternalId,
+    payoutError: ext.payoutError ?? tx.payoutError,
+    payoutAttemptedAt: ext.payoutAttemptedAt ?? tx.payoutAttemptedAt,
+  };
 }
 
 async function getOrCreateUserByEmail(email: string): Promise<UserItem> {
@@ -540,16 +716,33 @@ export async function createTransactionRequest(
   input: Partial<Transaction>
 ): Promise<Transaction> {
   const now = nowIso();
+  const wallet = (await listWallets(workspaceId)).find((entry) => entry.id === input.walletId);
+  if (!wallet) {
+    throw new Error("Wallet not found.");
+  }
+
+  const policy = await evaluateWalletLimits(
+    workspaceId,
+    wallet,
+    Number(input.amount ?? 0),
+    now
+  );
+  const evidenceNorm = normalizeEvidenceInput(input.evidence, now);
+  const extended = compactExtendedPayload(input);
+  extended.walletPolicy = wallet.policy;
+  if (policy.policyEvaluation !== undefined) {
+    extended.policyEvaluation = [...(extended.policyEvaluation ?? []), ...policy.policyEvaluation];
+  }
   const item: TransactionItem = {
     id: newId("tx"),
     workspaceId,
-    walletId: input.walletId ?? "",
+    walletId: wallet.id,
     agentId: input.agentId ?? "",
     amountCents: Math.round((input.amount ?? 0) * 100),
     currency: input.currency ?? "USD",
-    status: "pending_review",
-    policyResult: input.policyResult ?? "within_policy",
-    reviewState: "pending",
+    status: policy.status,
+    policyResult: policy.policyResult,
+    reviewState: policy.reviewState,
     recipient: input.recipient,
     vendor: input.vendor,
     category: input.category,
@@ -659,6 +852,7 @@ export async function listReviewQueue(workspaceId: string): Promise<ReviewItem[]
       return {
         transactionId: tx.id,
         transaction: tx,
+        flaggedReason: policyFailureReason(tx),
         ageMinutes,
         reviewerStatus: "pending" as const,
       };

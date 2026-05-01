@@ -102,6 +102,25 @@ export interface Evidence {
   uploadedAt: string;
 }
 
+export interface CitedRule {
+  id: string;
+  title: string;
+  source?: string;
+  excerpt?: string;
+}
+
+export interface AgentDecisionRecord {
+  summary: string;
+  reasoning?: string;
+  modelConfidence?: number;
+}
+
+export interface MatchedPayeeSummary {
+  displayName: string;
+  defaultRail: string;
+  paymentInstructions?: string;
+}
+
 export interface Transaction {
   id: string;
   requestedAt: string;
@@ -115,6 +134,16 @@ export interface Transaction {
   amount: number;
   currency: string;
   memo?: string;
+  /** Agent-declared reason for the spend */
+  purpose?: string;
+  /** Structured metadata (e.g. extraction payload) */
+  context?: Record<string, unknown>;
+  riskScore?: number;
+  riskFlags?: string[];
+  citedRules?: CitedRule[];
+  agentDecision?: AgentDecisionRecord;
+  matchedPayee?: MatchedPayeeSummary;
+  walletPolicy?: WalletPolicy;
   status: TransactionStatus;
   policyResult?: PolicyResult;
   reviewState?: "pending" | "approved" | "rejected";

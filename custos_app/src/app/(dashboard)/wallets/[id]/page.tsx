@@ -12,7 +12,6 @@ import { getWallet } from "@/lib/api/wallets";
 import { WalletStatusBadge } from "@/components/status/StatusBadge";
 import { AddFundsModal } from "@/components/wallets/AddFundsModal";
 import { formatCurrency } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
 
 export default function WalletDetailPage() {
   const params = useParams();
@@ -34,8 +33,6 @@ export default function WalletDetailPage() {
   }
 
   const dailyLimit = wallet.policy?.limits?.daily;
-  const dailyUsed = 0; // TODO: from API
-  const dailyPct = dailyLimit && dailyLimit > 0 ? Math.min(100, (dailyUsed / dailyLimit) * 100) : 0;
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -79,7 +76,9 @@ export default function WalletDetailPage() {
                 : "Not set"}
             </p>
             {dailyLimit != null && (
-              <Progress value={dailyPct} className="mt-2" />
+              <p className="mt-2 text-caption text-muted-foreground">
+                Usage tracking is not wired yet.
+              </p>
             )}
           </CardContent>
         </Card>
