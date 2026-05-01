@@ -8,6 +8,7 @@ import type {
   Agent,
   AgentCapability,
   Evidence,
+  PolicyEvaluationItem,
   ReviewItem,
   Transaction,
   TransactionStatus,
@@ -15,6 +16,7 @@ import type {
   WalletPolicy,
 } from "@/lib/types";
 import { DEMO_TABLES, demoDynamo, newId, nowIso } from "@/demo/server/dynamo/client";
+import { evaluateSpendPolicy } from "@/lib/policy/evaluateSpendPolicy";
 
 type TransactionExtendedPayload = {
   purpose?: Transaction["purpose"];
@@ -91,6 +93,8 @@ type TransactionItem = {
   currency: string;
   status: string;
   policyResult?: string;
+  flaggedReason?: string;
+  policyEvaluationJson?: string;
   reviewState?: "pending" | "approved" | "rejected";
   recipient?: string;
   vendor?: string;
@@ -103,6 +107,14 @@ type TransactionItem = {
   updatedAt: string;
   settledAt?: string;
 };
+
+function utcDayKey(value: string) {
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function countsTowardDailyLimit(status: string | undefined): boolean {
+  return status === "approved" || status === "settled";
+}
 
 function extendedPayloadFromItem(item: TransactionItem): TransactionExtendedPayload | null {
   const raw = item.extendedPayloadJson;
@@ -610,6 +622,7 @@ function txFromItem(
   item: TransactionItem,
   extras?: { agentName?: string; walletName?: string }
 ): Transaction {
+  const policyEvaluation = parseJson<PolicyEvaluationItem[]>(item.policyEvaluationJson, []);
   const core: Transaction = {
     id: item.id,
     requestedAt: item.createdAt,
@@ -627,6 +640,7 @@ function txFromItem(
     policyResult: (item.policyResult as Transaction["policyResult"]) ?? "within_policy",
     reviewState: item.reviewState,
     evidence: normalizeEvidenceFromJson(item.evidenceJson, item.createdAt),
+    policyEvaluation: policyEvaluation.length > 0 ? policyEvaluation : undefined,
     settledAt: item.settledAt,
   };
   return mergeTxWithExtended(core, extendedPayloadFromItem(item));
@@ -708,6 +722,40 @@ export async function createTransactionRequest(
   workspaceId: string,
   input: Partial<Transaction>
 ): Promise<Transaction> {
+  const wallet = input.walletId ? await getWalletById(input.walletId) : null;
+  const walletPolicy = wallet?.policy ?? { approvalMode: "review", limits: {} };
+  const walletCurrency = wallet?.currency ?? input.currency ?? "USD";
+  const amount = Number(input.amount ?? 0);
+
+  let todaySpend = 0;
+  if (input.walletId) {
+    const txQuery = await demoDynamo.send(
+      new QueryCommand({
+        TableName: DEMO_TABLES.transactions,
+        IndexName: "walletId-createdAt-index",
+        KeyConditionExpression: "walletId = :walletId",
+        ExpressionAttributeValues: { ":walletId": input.walletId },
+        ScanIndexForward: false,
+      })
+    );
+    const todayKey = utcDayKey(nowIso());
+    todaySpend = ((txQuery.Items ?? []) as TransactionItem[])
+      .filter(
+        (item) =>
+          item.workspaceId === workspaceId &&
+          utcDayKey(item.createdAt) === todayKey &&
+          countsTowardDailyLimit(item.status)
+      )
+      .reduce((sum, item) => sum + (item.amountCents ?? 0) / 100, 0);
+  }
+
+  const decision = evaluateSpendPolicy({
+    policy: walletPolicy,
+    amount,
+    walletCurrency,
+    todaySpend,
+  });
+
   const now = nowIso();
   const evidenceNorm = normalizeEvidenceInput(input.evidence, now);
   const extended = compactExtendedPayload(input);
@@ -716,11 +764,13 @@ export async function createTransactionRequest(
     workspaceId,
     walletId: input.walletId ?? "",
     agentId: input.agentId ?? "",
-    amountCents: Math.round((input.amount ?? 0) * 100),
-    currency: input.currency ?? "USD",
-    status: "pending_review",
-    policyResult: input.policyResult ?? "within_policy",
-    reviewState: "pending",
+    amountCents: Math.round(amount * 100),
+    currency: walletCurrency,
+    status: decision.status,
+    policyResult: decision.policyResult,
+    flaggedReason: decision.flaggedReason,
+    policyEvaluationJson: JSON.stringify(decision.policyEvaluation),
+    reviewState: decision.reviewState,
     recipient: input.recipient,
     vendor: input.vendor,
     category: input.category,
@@ -873,6 +923,7 @@ export async function listReviewQueue(workspaceId: string): Promise<ReviewItem[]
       return {
         transactionId: tx.id,
         transaction: tx,
+        flaggedReason: item.flaggedReason,
         ageMinutes,
         reviewerStatus: "pending" as const,
       };
