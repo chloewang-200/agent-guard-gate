@@ -34,6 +34,15 @@ const securityHeaders = [
 
 const nextConfig = {
   ...(outputFileTracingRoot ? { outputFileTracingRoot } : {}),
+  async redirects() {
+    return [
+      {
+        source: "/favicon.ico",
+        destination: "/favicon.svg",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

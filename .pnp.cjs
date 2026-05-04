@@ -1185,6 +1185,25 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@emotion/is-prop-valid", [\
+      ["npm:1.4.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/@emotion-is-prop-valid-npm-1.4.0-36d89399d2-10c0.zip/node_modules/@emotion/is-prop-valid/",\
+        "packageDependencies": [\
+          ["@emotion/is-prop-valid", "npm:1.4.0"],\
+          ["@emotion/memoize", "npm:0.9.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@emotion/memoize", [\
+      ["npm:0.9.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/@emotion-memoize-npm-0.9.0-ccd80906b3-10c0.zip/node_modules/@emotion/memoize/",\
+        "packageDependencies": [\
+          ["@emotion/memoize", "npm:0.9.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@esbuild/aix-ppc64", [\
       ["npm:0.25.12", {\
         "packageLocation": "./.yarn/unplugged/@esbuild-aix-ppc64-npm-0.25.12-8c22abd617/node_modules/@esbuild/aix-ppc64/",\
@@ -10061,7 +10080,7 @@ const RAW_RUNTIME_STATE =
       ["virtual:0bc5ba960b0779b9dff1bb6157562581b66b4db194124848dde7df474a7036d2b5c0411266b22659d3e2c61d0c2484497cc5b3fd7c7aa6111da5ba8f32d56afa#npm:12.38.0", {\
         "packageLocation": "./.yarn/__virtual__/framer-motion-virtual-1f176eee78/4/.yarn/berry/cache/framer-motion-npm-12.38.0-5ed9a26b7e-10c0.zip/node_modules/framer-motion/",\
         "packageDependencies": [\
-          ["@emotion/is-prop-valid", null],\
+          ["@emotion/is-prop-valid", "npm:1.4.0"],\
           ["@types/emotion__is-prop-valid", null],\
           ["@types/react", "npm:18.3.28"],\
           ["@types/react-dom", "virtual:0bc5ba960b0779b9dff1bb6157562581b66b4db194124848dde7df474a7036d2b5c0411266b22659d3e2c61d0c2484497cc5b3fd7c7aa6111da5ba8f32d56afa#npm:18.3.7"],\
@@ -10073,7 +10092,6 @@ const RAW_RUNTIME_STATE =
           ["tslib", "npm:2.8.1"]\
         ],\
         "packagePeers": [\
-          "@emotion/is-prop-valid",\
           "@types/emotion__is-prop-valid",\
           "@types/react-dom",\
           "@types/react",\

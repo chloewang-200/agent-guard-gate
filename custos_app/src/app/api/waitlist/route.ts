@@ -8,6 +8,27 @@ const supabaseTable = process.env.SUPABASE_WAITLIST_TABLE || "waitlist";
 
 const hasSupabase = Boolean(supabaseUrl && supabaseKey);
 
+/** Public POST may come from the Vite marketing site (another origin); keep responses readable to the browser. */
+const waitlistPostCors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+} as const;
+
+async function readJsonLoose(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: waitlistPostCors });
+}
+
 /** Admin-only: list signups (Supabase or upstream GET). */
 export async function GET() {
   const authed = await isWaitlistAdminRequest();
@@ -30,7 +51,7 @@ export async function GET() {
           },
         },
       );
-      const data = await response.json();
+      const data = await readJsonLoose(response);
       if (!response.ok) {
         return NextResponse.json(
           { ok: false, error: "Supabase waitlist failed.", details: data },
@@ -72,17 +93,31 @@ export async function POST(request: Request) {
       email = json.email ?? null;
     }
   } catch {
-    return NextResponse.json({ ok: false, error: "Invalid body" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Invalid body" },
+      { status: 400, headers: waitlistPostCors },
+    );
   }
 
   if (!email?.trim()) {
-    return NextResponse.json({ ok: false, error: "Missing email" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Missing email" },
+      { status: 400, headers: waitlistPostCors },
+    );
   }
 
   const trimmed = email.trim();
 
   if (!endpoint && !hasSupabase) {
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(
+      {
+        ok: true,
+        persisted: false,
+        warning:
+          "Nothing was saved: this server has no WAITLIST_ENDPOINT and no Supabase credentials (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY).",
+      },
+      { headers: waitlistPostCors },
+    );
   }
 
   try {
@@ -98,15 +133,18 @@ export async function POST(request: Request) {
         body: JSON.stringify({ email: trimmed }),
       });
 
-      const data = await response.json();
+      const data = await readJsonLoose(response);
       if (!response.ok) {
         return NextResponse.json(
           { ok: false, error: "Supabase waitlist failed.", details: data },
-          { status: response.status },
+          { status: response.status, headers: waitlistPostCors },
         );
       }
 
-      return NextResponse.json({ ok: true, data });
+      return NextResponse.json(
+        { ok: true, persisted: true, ...(data != null ? { data } : {}) },
+        { headers: waitlistPostCors },
+      );
     }
 
     const response = await fetch(endpoint as string, {
@@ -121,13 +159,16 @@ export async function POST(request: Request) {
       const details = await response.text();
       return NextResponse.json(
         { ok: false, error: "Upstream waitlist failed.", details },
-        { status: 502 },
+        { status: 502, headers: waitlistPostCors },
       );
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, persisted: true }, { headers: waitlistPostCors });
   } catch (e) {
     console.error("Waitlist POST failed", e);
-    return NextResponse.json({ ok: false, error: "Server error." }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Server error." },
+      { status: 500, headers: waitlistPostCors },
+    );
   }
 }

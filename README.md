@@ -16,6 +16,8 @@ npm run dev:custos     # Custos Next.js app — run in a second terminal for “
 
 For a **single-host** production deploy, use the **Custos** Vercel project (`custos_app` root directory); the unified Next app serves landing + product on one URL.
 
+**Vercel CLI:** run from this repo root (not inside `custos_app`). In the Vercel project **Settings → General → Root Directory**, keep **`custos_app`** (one segment only). The old script used `cd custos_app && vercel`, which made Vercel look for **`custos_app/custos_app`**. From the repo root run `yarn vercel:custos:prod`. Link the CLI from the repo root too: `npx vercel link` (if `.vercel` only exists under `custos_app`, remove it or link again from the root so deploys resolve correctly).
+
 ## Scripts
 
 - `npm run dev` / `npm run dev:marketing` — Vite marketing dev server on port **5173**

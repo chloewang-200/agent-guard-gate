@@ -9,6 +9,16 @@ const supabaseTable = process.env.SUPABASE_WAITLIST_TABLE || "waitlist";
 
 const hasSupabase = Boolean(supabaseUrl && supabaseKey);
 
+async function readJsonLoose(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
 const getEmailFromBody = (body: unknown): string | undefined => {
   if (!body) return undefined;
   if (typeof body === "string") {
@@ -49,7 +59,7 @@ export default async function handler(req: any, res: any) {
             },
           },
         );
-        const data = await response.json();
+        const data = await readJsonLoose(response);
         if (!response.ok) {
           res.status(response.status).json({ ok: false, error: "Supabase waitlist failed.", details: data });
           return;
@@ -101,13 +111,13 @@ export default async function handler(req: any, res: any) {
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
+      const data = await readJsonLoose(response);
       if (!response.ok) {
         res.status(response.status).json({ ok: false, error: "Supabase waitlist failed.", details: data });
         return;
       }
 
-      res.status(200).json({ ok: true, data });
+      res.status(200).json({ ok: true, ...(data != null ? { data } : {}) });
       return;
     }
 

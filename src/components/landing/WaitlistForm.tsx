@@ -17,7 +17,28 @@ const heroInputClass =
 const heroButtonClass =
   "absolute right-2 top-2 z-10 h-10 whitespace-nowrap rounded-lg border border-slate-900 px-2 text-[11px] font-semibold text-slate-900 shadow-[2px_2px_0_0_rgba(0,0,0,1)] bg-[#eefa79] hover:bg-[#f0fb8a] sm:px-4 sm:text-sm";
 
-const endpoint = "/api/waitlist";
+function waitlistPostUrl(): string {
+  const base = import.meta.env.VITE_CUSTOS_APP_URL?.trim().replace(/\/$/, "");
+  if (base) return `${base}/api/waitlist`;
+  return "/api/waitlist";
+}
+
+function describeWaitlistFailure(
+  response: Response,
+  payload: { ok?: boolean; error?: string; details?: unknown } | null,
+): string {
+  if (payload?.details != null) {
+    if (typeof payload.details === "string") return payload.details.slice(0, 600);
+    try {
+      return JSON.stringify(payload.details).slice(0, 600);
+    } catch {
+      return String(payload.details);
+    }
+  }
+  if (payload?.error) return payload.error;
+  if (!response.ok) return `Request failed (HTTP ${response.status}).`;
+  return "Something went wrong.";
+}
 
 export function WaitlistForm({
   size = "default",
@@ -41,29 +62,69 @@ export function WaitlistForm({
 
     const trimmedEmail = email.trim();
 
-    setEmail("");
-    toast({
-      title: "You're on the list",
-      description: "Thanks for joining the waitlist.",
-    });
-
     try {
       const body = new URLSearchParams({ email: trimmedEmail });
-      const response = await fetch(endpoint, {
+      const response = await fetch(waitlistPostUrl(), {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
         body,
+        credentials: "omit",
       });
 
-      if (!response.ok) {
-        throw new Error("Waitlist request failed.");
+      const raw = await response.text();
+      let payload: {
+        ok?: boolean;
+        persisted?: boolean;
+        warning?: string;
+        error?: string;
+        details?: unknown;
+      } | null = null;
+      if (raw) {
+        try {
+          payload = JSON.parse(raw) as typeof payload;
+        } catch {
+          payload = null;
+        }
       }
-    } catch (_error) {
+
+      if (!response.ok || payload?.ok === false) {
+        toast({
+          title: "Couldn't save your email",
+          description: describeWaitlistFailure(response, payload),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (payload?.persisted === false) {
+        toast({
+          title: "Not saved yet",
+          description:
+            payload.warning ||
+            "The API did not persist this email (dev stub or missing Supabase env on the Custos server).",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setEmail("");
       toast({
-        title: "Submission delayed",
-        description: "We couldn't save your email yet. Please try again shortly.",
+        title: "You're on the list",
+        description: "Thanks for joining the waitlist.",
+      });
+    } catch (error: unknown) {
+      const isNetwork =
+        error instanceof TypeError &&
+        (error.message === "Failed to fetch" ||
+          error.message.includes("Failed to fetch") ||
+          error.message.includes("Load failed"));
+      toast({
+        title: isNetwork ? "Can't reach the Custos API" : "Submission delayed",
+        description: isNetwork
+          ? "Start Custos in another terminal: yarn dev:custos (port 8080). If you use the marketing site from yarn dev, set VITE_CUSTOS_APP_URL=http://localhost:8080 in the repo root .env.local and restart Vite."
+          : "We couldn't save your email yet. Please try again shortly.",
         variant: "destructive",
       });
     }
