@@ -20,6 +20,9 @@ function waitlistHref(): string {
 const VERIFICATION_URL_MESSAGE =
   "This sign-in link expired or was already used. Request a new link below.";
 
+/** Matches server-side demo bypass in `@/lib/auth` — instant sign-in, no magic link. */
+const DEMO_BYPASS_EMAIL = "demo@custos-ai.com";
+
 /** NextAuth callbackUrl must stay same-origin; disallow protocol-relative or absolute URLs. */
 function safeCallbackUrl(raw: string | null): string {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/overview";
@@ -131,6 +134,15 @@ function LoginForm() {
                   setShowWaitlistNotice(false);
                   setEmailSent(false);
                   try {
+                    const normalized = email.trim().toLowerCase();
+                    if (normalized === DEMO_BYPASS_EMAIL) {
+                      await signIn("demo-instant", {
+                        email: normalized,
+                        callbackUrl: postLoginDestination,
+                        redirect: true,
+                      });
+                      return;
+                    }
                     const result = await signIn("email", {
                       email,
                       callbackUrl: postLoginDestination,

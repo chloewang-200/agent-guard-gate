@@ -24,6 +24,28 @@ const hasEmailProvider =
 
 const hasDynamoAdapter = Boolean(process.env.AWS_REGION) && Boolean(process.env.NEXTAUTH_DYNAMODB_TABLE);
 
+/** Public demo login — bypasses magic link (instant session). */
+const DEMO_BYPASS_EMAIL = "demo@custos-ai.com";
+
+function demoInstantCredentialsProvider() {
+  return CredentialsProvider({
+    id: "demo-instant",
+    name: "Demo instant",
+    credentials: {
+      email: { label: "Email", type: "email" },
+    },
+    authorize: async (credentials) => {
+      const email = credentials?.email?.toString().trim().toLowerCase();
+      if (email !== DEMO_BYPASS_EMAIL) return null;
+      return {
+        id: `demo_${email}`,
+        email,
+        name: "Custos Demo",
+      };
+    },
+  });
+}
+
 const providers: NextAuthOptions["providers"] = [];
 
 const dynamoDocumentClient = hasDynamoAdapter
@@ -64,6 +86,7 @@ if (hasEmailProvider && hasDynamoAdapter) {
       maxAge: 10 * 60,
     }),
   );
+  providers.push(demoInstantCredentialsProvider());
 }
 
 if (hasEmailProvider && !hasDynamoAdapter && isProduction) {
@@ -103,6 +126,7 @@ if (providers.length === 0) {
         },
       }),
     );
+    providers.push(demoInstantCredentialsProvider());
   } else {
     throw new Error(
       "No auth provider configured. Set Email sign-in env vars: SMTP server fields, EMAIL_FROM, AWS_REGION, and NEXTAUTH_DYNAMODB_TABLE.",
